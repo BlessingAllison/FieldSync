@@ -76,6 +76,24 @@ const transportFailure = (
   requestId: string,
 ): ApiResult<never> => ({ ok: false, error: { kind, errorClass: 'transient', status, requestId } });
 
+/** Timing of one request, for the network meter (time until the response headers). */
+export interface RequestTiming {
+  ms: number;
+  /** The FieldSync server answered (any status). False: no answer, timeout, or not our server. */
+  reached: boolean;
+  /** Small request (no or tiny body), so its time approximates a round trip. */
+  small: boolean;
+}
+
+let timingObserver: ((timing: RequestTiming) => void) | null = null;
+
+/** One observer per context (the page's network meter); null removes it. */
+export function setRequestTimingObserver(observer: ((timing: RequestTiming) => void) | null): void {
+  timingObserver = observer;
+}
+
+const SMALL_BODY_BYTES = 4_096;
+
 export async function requestJson<T>(
   path: string,
   options: RequestOptions = {},
@@ -105,6 +123,17 @@ export async function requestJson<T>(
     body = JSON.stringify(options.body);
   }
 
+  const small =
+    (typeof body === 'string' ? body.length : (body?.byteLength ?? 0)) <= SMALL_BODY_BYTES;
+  const started = Date.now();
+  const report = (reached: boolean) => {
+    try {
+      timingObserver?.({ ms: Date.now() - started, reached, small });
+    } catch {
+      // Monitoring must never affect requests.
+    }
+  };
+
   let response: Response;
   try {
     response = await (options.fetchImpl ?? fetch)(path, {
@@ -116,11 +145,15 @@ export async function requestJson<T>(
       cache: 'no-store',
     });
   } catch {
+    report(false);
     return transportFailure(timedOut ? 'timeout' : 'network', null, requestId);
   } finally {
     clearTimeout(timer);
     options.signal?.removeEventListener('abort', onExternalAbort);
   }
+  // A proxy or captive portal also "answers"; only our envelope proves the server (below).
+  const fromServer = response.headers.has('X-Request-ID') || response.status === 304;
+  report(fromServer);
 
   const etag = response.headers.get('ETag');
   const bare = { request_id: requestId, api_version: '1' };

@@ -190,10 +190,10 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    get: operations['form_templates_detail'];
     put?: never;
     post?: never;
-    delete?: never;
+    delete: operations['form_templates_delete'];
     options?: never;
     head?: never;
     patch: operations['form_templates_update'];
@@ -225,6 +225,40 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations['form_templates_retire'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/form-templates/manage': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** @description Admin form builder: every version of every template, drafts included. */
+    get: operations['form_templates_manage_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/form-templates/validate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Dry run: every reason the definition could not be saved (nothing is stored). */
+    post: operations['form_templates_validate'];
     delete?: never;
     options?: never;
     head?: never;
@@ -494,6 +528,22 @@ export interface components {
       code: string;
       name: string;
     };
+    DefinitionProblems: {
+      valid: boolean;
+      problems: string[];
+    };
+    DefinitionProblemsEnvelope: {
+      /** @default true */
+      success: boolean;
+      data: components['schemas']['DefinitionProblems'];
+      error?: unknown | null;
+      meta: components['schemas']['Meta'];
+    };
+    Deleted: {
+      /** Format: uuid */
+      id: string;
+      deleted: boolean;
+    };
     Device: {
       /** Format: uuid */
       readonly id: string;
@@ -637,6 +687,44 @@ export interface components {
       readonly accept_until: string | null;
       /** Format: date-time */
       readonly published_at: string | null;
+    };
+    /** @description Every lifecycle field, for the admin form builder (drafts included). */
+    FormTemplateAdmin: {
+      /** Format: uuid */
+      readonly id: string;
+      readonly code: string;
+      readonly version: number;
+      readonly subject: components['schemas']['SubjectEnum'];
+      readonly title: unknown;
+      readonly description: unknown;
+      readonly definition: unknown;
+      readonly definition_hash: string;
+      readonly status: components['schemas']['TemplateStatusEnum'];
+      /** Format: date-time */
+      readonly accept_until: string | null;
+      /** Format: date-time */
+      readonly published_at: string | null;
+      /** Format: date-time */
+      readonly superseded_at: string | null;
+      /** Format: date-time */
+      readonly retired_at: string | null;
+      /** Format: date-time */
+      readonly created_at: string;
+      readonly submission_count: number;
+    };
+    FormTemplateAdminEnvelope: {
+      /** @default true */
+      success: boolean;
+      data: components['schemas']['FormTemplateAdmin'];
+      error?: unknown | null;
+      meta: components['schemas']['Meta'];
+    };
+    FormTemplateAdminListEnvelope: {
+      /** @default true */
+      success: boolean;
+      data: components['schemas']['FormTemplateAdmin'][];
+      error?: unknown | null;
+      meta: components['schemas']['Meta'];
     };
     FormTemplateEnvelope: {
       /** @default true */
@@ -969,6 +1057,13 @@ export interface components {
     TemplateDefinitionRequestRequest: {
       /** @description A definition valid against contracts/form-template.schema.json */
       definition: unknown;
+    };
+    TemplateDeletedEnvelope: {
+      /** @default true */
+      success: boolean;
+      data: components['schemas']['Deleted'];
+      error?: unknown | null;
+      meta: components['schemas']['Meta'];
     };
     TemplateRefRequest: {
       code: string;
@@ -1357,6 +1452,64 @@ export interface operations {
       };
     };
   };
+  form_templates_detail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        template_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FormTemplateAdminEnvelope'];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorEnvelope'];
+        };
+      };
+    };
+  };
+  form_templates_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        template_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['TemplateDeletedEnvelope'];
+        };
+      };
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorEnvelope'];
+        };
+      };
+    };
+  };
   form_templates_update: {
     parameters: {
       query?: never;
@@ -1420,6 +1573,48 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['FormTemplateEnvelope'];
+        };
+      };
+    };
+  };
+  form_templates_manage_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FormTemplateAdminListEnvelope'];
+        };
+      };
+    };
+  };
+  form_templates_validate: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TemplateDefinitionRequestRequest'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DefinitionProblemsEnvelope'];
         };
       };
     };

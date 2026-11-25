@@ -1,7 +1,8 @@
 # FieldSync — Guide for Community Health Workers
 
-> FieldSync is a **demonstration** app. Use only the practice accounts and made-up patients
-> your trainer gives you. Never enter real patient information.
+> Patient information is confidential. Never share your password, and show forms only to
+> your supervisor. During training, use the practice account and made-up patients your
+> trainer gives you.
 
 This guide explains how to collect forms with FieldSync, with or without network.
 The words in **bold** are the words you see on the screen.
@@ -62,6 +63,18 @@ When there is no network you see **You are offline** at the top. Keep working no
 - When the phone finds network again — even for a short time — FieldSync starts sending.
   On most Android phones this happens **even when FieldSync is closed**.
 - You can also open **Sync** and tap **Send now**.
+
+**The signal bars** at the top right show how well your phone can reach FieldSync right now:
+
+| Bars | Word | What to do |
+|---|---|---|
+| ▂▄▆█ | **Strong** / **Good** | A good time to send forms. |
+| ▂▄ | **Fair** | Forms will send. |
+| ▂ | **Weak** | Forms send slowly. Keep FieldSync open, or move to a spot with better signal. |
+| (none) | **No server** | The phone has network but cannot reach FieldSync (for example a Wi-Fi sign-in page). Keep working; forms wait safely. |
+| (none) | **Offline** | No network. Keep working; forms wait safely. |
+
+Tap the bars to see more and to **Check now**.
 
 The Home screen tells you how things stand:
 
@@ -160,7 +173,7 @@ cannot be recovered — another reason to send forms whenever you have network.
 
 ## 10. Other settings
 
-- **Language:** **Settings → Language**. *Kpelle* is a placeholder in this demonstration:
+- **Language:** **Settings → Language**. *Kpelle* is a placeholder until the translation is finished:
   it shows English text marked ⟦kpe⟧, not a real translation.
 - **Bright sunlight:** **Settings → Appearance → Outdoor (high contrast)**.
 - **Device check:** **Settings → Device check** tests whether this phone is ready to work

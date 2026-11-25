@@ -44,7 +44,7 @@ logs: ## Tail API and web logs
 .PHONY: seed
 seed: ## Seed synthetic demo data; credentials go to ACCOUNTS.local.md (git-ignored, mode 600)
 	@umask 077 && docker compose exec -T api python manage.py seed_demo > ACCOUNTS.local.md
-	@echo "Demo accounts written to ACCOUNTS.local.md (never commit it)."
+	@echo "Accounts written to ACCOUNTS.local.md (never commit it)."
 
 # ── Host development ─────────────────────────────────────────────────────────
 .PHONY: dev-api

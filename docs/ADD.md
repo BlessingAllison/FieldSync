@@ -5,7 +5,7 @@
 | **System** | FieldSync — Offline-First Health Data Collection PWA |
 | **Document status** | Phase 1 — Blueprint (baseline). Living document: every design change made in later phases is recorded in §20 *Decision Log & Deviations*. |
 | **Date** | 2026-11-19 |
-| **Nature of project** | Portfolio **demonstration** project modelling the needs of County Health Teams (CHTs) as described in the NHIC (Ministry of Health, Liberia) Software Developer TOR. FieldSync is **not** in production use, is **not** an official MoH system, and contains **no real patient data**. All facilities, users and patients in seed data are synthetic. Form templates are illustrative, not official MoH/NCHP forms. |
+| **Nature of project** | Offline-first health data collection platform for County Health Teams (CHTs), designed against the needs described in the NHIC (Ministry of Health, Liberia) Software Developer TOR. Sample data created by the seed command is synthetic. |
 
 ---
 
@@ -1201,7 +1201,7 @@ Route-level splitting; `LazyMotion`; no date library (`Intl`); no lodash; SVG il
 
 ### 16.7 Offline sync simulator (the "wow" feature)
 
-Purpose: make the invisible visible — for portfolio reviewers, and as a **training mode** for CHWs.
+Purpose: make the invisible visible — for supervisors and trainers, and as a **training mode** for CHWs.
 
 - **Controls:** network profile — *Online*, *Offline*, *3G* (400 ms RTT, 400 kbps simulated by delay = RTT + bytes/bandwidth), *Flaky* (30 % requests dropped before send, 20 % **acknowledgement lost after the server committed**), *Server trouble* (server returns 503 + `Retry-After` via demo fault header). Buttons: *Add 5 / 50 / 500 synthetic forms*, *Supervisor edits a synced record* (conflict injection), *Sync now*, *Reset demo data*.
 - **Visualisation:** three animated lanes — **On this phone** → **Sending** → **Server** — with one card per item showing state chip, attempt count, and a live backoff countdown. Breaker indicator (Closed/Open/Half-open). Live event log. Counters: queue depth, sent, retries, **duplicates prevented** (server `replayed` outcomes), conflicts.
@@ -1322,6 +1322,9 @@ Deviations (filled in during Phases 2–5):
 | 37 | 5 | New operational commands: `rotate_escrow` (re-seal device escrow under the active KEK) and `prune_sync_events` (retention, `SYNC_EVENT_RETENTION_DAYS`, default 180) | §11.4.3 rotation could not retire an old key; §8.3 retention needed an executable job |
 | 38 | 5 | `seed_demo` refreshes its time-relative device reports on every run; `--reset-device-states` (used by `make e2e` and CI) drops throwaway-device reports | The demo dashboard aged from "degraded" to "stale" ~52 h after seeding and failed E2E (QA P5-5) |
 | 39 | 5 | API budget "p95 ≤ 150 ms at 50 req/s on 2 vCPU" is **not verified** on the development host; a stdlib open-loop load generator (`scripts/loadtest.py`) is provided for the target environment | The laptop's Docker VM got ≈ 1 physical core; projection and set-based batch refactor in QA §5.4 / R1 |
+| 40 | 5+ | **Admin form builder in the PWA** (`/admin/forms`, admin role only): list every template version, create, edit drafts (steps, questions, eight answer types, choices, per-type rules, units, display widgets, `showIf` conditions, identifier flag, Kpelle labels), live preview with the field team's own widgets and engine, publish, new version, copy, retire, delete draft. New admin endpoints: `GET /form-templates/manage`, `GET`/`DELETE /form-templates/{id}`, `POST /form-templates/validate` (dry run). Published versions open read-only | §13.3 left authoring to the API/Django admin; administrators need to create and maintain many field forms without developers. The builder generates valid ids and option values from labels and only offers rules a type allows, and the server still validates every save |
+| 41 | 5+ | **Network-strength meter** in the header (0–4 bars + word, details dialog with server response time, phone network type and speed estimate, *Check now*). Inputs: timing of small API requests already made, a ~200-byte probe when nothing was measured for 45 s while visible, and the Network Information API where available; replaces the Online/Offline text chip | Workers need to know whether *now* is a good moment to send; `navigator.onLine` says nothing about reaching the server (captive Wi-Fi, dead cells) |
+| 42 | 5+ | Product framing: no "demonstration" notices in the UI or user-facing documents; the footer shows the app version; sample data from `seed_demo` uses generic facility names and fictional person names | The owner asked for production framing. The seed data remains synthetic and is documented as such |
 
 ---
 

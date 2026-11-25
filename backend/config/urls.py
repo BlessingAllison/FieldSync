@@ -44,6 +44,8 @@ api_v1 = [
         templates.FormTemplateVersionView.as_view(),
         name="form-template-version",
     ),
+    path("form-templates/manage", templates.FormTemplateManageListView.as_view()),
+    path("form-templates/validate", templates.FormTemplateValidateView.as_view()),
     path("form-templates/<uuid:template_id>", templates.FormTemplateDetailView.as_view()),
     path("form-templates/<uuid:template_id>/publish", templates.FormTemplatePublishView.as_view()),
     path("form-templates/<uuid:template_id>/retire", templates.FormTemplateRetireView.as_view()),

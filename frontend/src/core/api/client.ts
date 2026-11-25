@@ -24,6 +24,8 @@ export type SubmissionDetail = Schemas['SubmissionDetail'];
 export type SyncStatus = Schemas['SyncStatus'];
 export type FacilityHealth = Schemas['FacilityHealth'];
 export type SupervisorEdit = Schemas['SupervisorEdit'];
+export type FormTemplateAdmin = Schemas['FormTemplateAdmin'];
+export type DefinitionProblems = Schemas['DefinitionProblems'];
 
 export type RefreshOutcome =
   | { ok: true; profile: UserProfile }
@@ -234,6 +236,50 @@ export class ApiClient {
   supervisorEdit(clientUuid: string) {
     return this.authed<SupervisorEdit>(`/api/v1/demo/supervisor-edit/${clientUuid}`, {
       method: 'POST',
+    });
+  }
+
+  // ── Form builder (admin) ─────────────────────────────────────────────────
+  manageTemplates() {
+    return this.authed<FormTemplateAdmin[]>('/api/v1/form-templates/manage');
+  }
+
+  templateDetail(id: string) {
+    return this.authed<FormTemplateAdmin>(`/api/v1/form-templates/${id}`);
+  }
+
+  validateTemplate(definition: unknown) {
+    return this.authed<DefinitionProblems>('/api/v1/form-templates/validate', {
+      method: 'POST',
+      body: { definition },
+    });
+  }
+
+  createTemplate(definition: unknown) {
+    return this.authed<FormTemplate>('/api/v1/form-templates', {
+      method: 'POST',
+      body: { definition },
+    });
+  }
+
+  updateTemplate(id: string, definition: unknown) {
+    return this.authed<FormTemplate>(`/api/v1/form-templates/${id}`, {
+      method: 'PATCH',
+      body: { definition },
+    });
+  }
+
+  publishTemplate(id: string) {
+    return this.authed<FormTemplate>(`/api/v1/form-templates/${id}/publish`, { method: 'POST' });
+  }
+
+  retireTemplate(id: string) {
+    return this.authed<FormTemplate>(`/api/v1/form-templates/${id}/retire`, { method: 'POST' });
+  }
+
+  deleteTemplate(id: string) {
+    return this.authed<{ id: string; deleted: boolean }>(`/api/v1/form-templates/${id}`, {
+      method: 'DELETE',
     });
   }
 

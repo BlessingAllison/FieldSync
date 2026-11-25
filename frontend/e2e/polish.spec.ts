@@ -16,6 +16,9 @@ const SCREENS = ['/', '/new', '/sync', '/help', '/settings', '/simulator', '/dev
 const NOT_UI_COPY = [
   /^[\d\s.,:;%·•×+()\-–—/#]*$/,
   /\(demo\)|Demo (Health Centre|Clinic|Community Post|District Hospital)|Bong|Nimba/,
+  // Seeded people (synthetic) and forms created by the form-builder E2E test.
+  /Musu Kollie|Joseph Flomo|Esther Saye|Martha Kpadeh|Emmanuel Gonkarnue|Comfort Wesseh/,
+  /^Malaria case report [a-z0-9]+$/,
   /^(BG|NI|MO|LO)-[A-Z]{2}-\d{3}$|^\(?(BG|NI|MO|LO)-|HH-\d{4}-\d{2}/,
   /^FieldSync$/,
   /\b(ago|now|yesterday|today|tomorrow|in \d+ (seconds?|minutes?|hours?|days?))\b/i,

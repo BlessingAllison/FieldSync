@@ -1,4 +1,5 @@
 import {
+  ClipboardList,
   HelpCircle,
   Home,
   LayoutDashboard,
@@ -23,6 +24,9 @@ export function navItems(role: Role | undefined): NavItem[] {
   return [
     ...(reviewer
       ? [{ to: '/supervisor', label: 'nav.dashboard' as const, Icon: LayoutDashboard }]
+      : []),
+    ...(role === 'admin'
+      ? [{ to: '/admin/forms', label: 'nav.forms' as const, Icon: ClipboardList }]
       : []),
     { to: reviewer ? '/home' : '/', label: 'nav.home', Icon: Home },
     { to: '/sync', label: 'nav.sync', Icon: RefreshCw, badge: true },

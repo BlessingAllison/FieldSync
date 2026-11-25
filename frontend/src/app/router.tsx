@@ -22,6 +22,8 @@ const SupervisorPage = lazy(() => import('@/features/supervisor/SupervisorPage')
 const SimulatorPage = lazy(() => import('@/features/simulator/SimulatorPage'));
 const HelpPage = lazy(() => import('@/features/help/HelpPage'));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage'));
+const FormsAdminPage = lazy(() => import('@/features/admin/FormsAdminPage'));
+const FormBuilderPage = lazy(() => import('@/features/admin/FormBuilderPage'));
 
 const lazyPage = (node: ReactNode) => <Suspense fallback={<PageSkeleton />}>{node}</Suspense>;
 const guarded = (node: ReactNode, roles?: Array<'chw' | 'supervisor' | 'admin'>) => (
@@ -55,6 +57,11 @@ export const router = createBrowserRouter(
           element: guarded(lazyPage(<SupervisorPage />), ['supervisor', 'admin']),
         },
         { path: '/simulator', element: guarded(lazyPage(<SimulatorPage />)) },
+        { path: '/admin/forms', element: guarded(lazyPage(<FormsAdminPage />), ['admin']) },
+        {
+          path: '/admin/forms/:templateId',
+          element: guarded(lazyPage(<FormBuilderPage />), ['admin']),
+        },
         { path: '/help', element: lazyPage(<HelpPage />) },
         { path: '/settings', element: guarded(lazyPage(<SettingsPage />)) },
         { path: '*', element: guarded(<HomePage />) },

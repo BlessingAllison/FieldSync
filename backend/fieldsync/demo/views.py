@@ -72,7 +72,7 @@ class SupervisorEditView(APIView):
             submission,
             reviewer=reviewer,
             status="reviewed",
-            note="Corrected during supervision visit (demo).",
+            note="Corrected during supervision visit.",
             payload=payload,
             base_version=submission.version,
             request_id=get_request_id(request),

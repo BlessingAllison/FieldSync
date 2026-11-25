@@ -442,6 +442,50 @@
             }
         },
         "/api/v1/form-templates/{template_id}": {
+            "get": {
+                "operationId": "form_templates_detail",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "template_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateAdminEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
             "patch": {
                 "operationId": "form_templates_update",
                 "parameters": [
@@ -478,6 +522,50 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "form_templates_delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "template_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TemplateDeletedEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
                                 }
                             }
                         },
@@ -550,6 +638,68 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates/manage": {
+            "get": {
+                "operationId": "form_templates_manage_list",
+                "description": "Admin form builder: every version of every template, drafts included.",
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateAdminListEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates/validate": {
+            "post": {
+                "operationId": "form_templates_validate",
+                "description": "Dry run: every reason the definition could not be saved (nothing is stored).",
+                "tags": [
+                    "templates"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TemplateDefinitionRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DefinitionProblemsEnvelope"
                                 }
                             }
                         },
@@ -1239,6 +1389,67 @@
                     "name"
                 ]
             },
+            "DefinitionProblems": {
+                "type": "object",
+                "properties": {
+                    "valid": {
+                        "type": "boolean"
+                    },
+                    "problems": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "problems",
+                    "valid"
+                ]
+            },
+            "DefinitionProblemsEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/DefinitionProblems"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "Deleted": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "deleted": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "deleted",
+                    "id"
+                ]
+            },
             "Device": {
                 "type": "object",
                 "properties": {
@@ -1796,6 +2007,169 @@
                     "subject",
                     "title",
                     "version"
+                ]
+            },
+            "FormTemplateAdmin": {
+                "type": "object",
+                "description": "Every lifecycle field, for the admin form builder (drafts included).",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "version": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "subject": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SubjectEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "title": {
+                        "readOnly": true
+                    },
+                    "description": {
+                        "readOnly": true
+                    },
+                    "definition": {
+                        "readOnly": true
+                    },
+                    "definition_hash": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TemplateStatusEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "accept_until": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "superseded_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "retired_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "submission_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "accept_until",
+                    "code",
+                    "created_at",
+                    "definition",
+                    "definition_hash",
+                    "description",
+                    "id",
+                    "published_at",
+                    "retired_at",
+                    "status",
+                    "subject",
+                    "submission_count",
+                    "superseded_at",
+                    "title",
+                    "version"
+                ]
+            },
+            "FormTemplateAdminEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/FormTemplateAdmin"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "FormTemplateAdminListEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FormTemplateAdmin"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
                 ]
             },
             "FormTemplateEnvelope": {
@@ -2876,6 +3250,33 @@
                 },
                 "required": [
                     "definition"
+                ]
+            },
+            "TemplateDeletedEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Deleted"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
                 ]
             },
             "TemplateRefRequest": {

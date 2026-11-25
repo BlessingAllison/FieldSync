@@ -5,14 +5,14 @@ shared contracts (`contracts/`) and the compose stack (`infra/`, `docker-compose
 Companion documents: [TESTING-CHECKLIST.md](TESTING-CHECKLIST.md) (manual field pilot),
 [USER-GUIDE.md](USER-GUIDE.md) (CHWs), [MAINTENANCE.md](MAINTENANCE.md) (operators).
 
-> FieldSync is a portfolio demonstration. All data is synthetic. Every measurement below was
+> All test data is synthetic. Every measurement below was
 > taken on a development laptop, not on target phones or servers. Section 5.1 describes the
 > environment and how far the numbers can be trusted.
 
 **Summary**
 
-- **Automated gates:** backend 217 tests (92 % line coverage), frontend 182 unit/component
-  tests, E2E 21 tests × 2 viewports (final full run 41/42; the one failure was a sign-in timeout during a host load spike and passed on rerun, §2.1). Lint, strict typing, migrations, OpenAPI drift and bundle
+- **Automated gates:** backend 220 tests (92 % line coverage), frontend 193 unit/component
+  tests, E2E 24 tests × 2 viewports (final full run **48/48**, §2.1). Lint, strict typing, migrations, OpenAPI drift and bundle
   budgets are green.
 - **Edge cases:** all 11 edge cases in ADD §17 have automated evidence (§4). Two of them
   exposed real defects that are now fixed: the save-with-full-storage path and the
@@ -22,7 +22,7 @@ Companion documents: [TESTING-CHECKLIST.md](TESTING-CHECKLIST.md) (manual field 
   report was sent before the acknowledgements. The demo database still held 107 such phantom
   reports from Phase 3 test runs.
 - **Performance:** a 500-form drain went from 29.6 s to 8.5 s of on-device work at 4× CPU.
-  Through the real API on emulated Slow 3G it takes **61 s** (budget 2 min). Cold load is
+  Through the real API on emulated Slow 3G it takes **31 s** (budget 2 min; 61 s before the IndexedDB pipelining). Cold load is
   **at** the 6 s budget with no margin. The API's 150 ms @ 50 req/s budget is **not verified**:
   the laptop could not provide two dedicated vCPUs. §5 explains why, and refactor R1 gives
   the path to headroom.
@@ -49,11 +49,11 @@ LOADTEST_PASSWORD=<seeded password> python3 scripts/loadtest.py --rate 50 --dura
 
 | Suite | Tooling | Files | Tests | What it covers |
 |---|---|---|---|---|
-| API unit + integration | pytest, pytest-django on **real PostgreSQL**, Hypothesis | 18 | 217 | Envelope and error contract, middleware (request id, gzip bomb, size caps, headers), PHI log scrubber, UUIDv7, settings guards (`prod` refuses unsafe config), auth (login, lockout, rotation + blacklist, absolute cap, CSRF/same-origin refresh, revocation, escrow + rotation), RBAC matrix (endpoint × role × in/out of scope), idempotent upsert (create/replay/update/conflict/override/merge/own-writes/quarantine/re-validation), **property test over random action interleavings**, **true concurrency test with two DB connections**, batch partial success and gzip, template lifecycle and resolution cache, sync-health classification and aggregation, domain metrics, retention, seed |
+| API unit + integration | pytest, pytest-django on **real PostgreSQL**, Hypothesis | 18 | 220 | Envelope and error contract, middleware (request id, gzip bomb, size caps, headers), PHI log scrubber, UUIDv7, settings guards (`prod` refuses unsafe config), auth (login, lockout, rotation + blacklist, absolute cap, CSRF/same-origin refresh, revocation, escrow + rotation), RBAC matrix (endpoint × role × in/out of scope), idempotent upsert (create/replay/update/conflict/override/merge/own-writes/quarantine/re-validation), **property test over random action interleavings**, **true concurrency test with two DB connections**, batch partial success and gzip, template lifecycle, resolution cache and form-builder endpoints (admin-only, dry-run validation, draft deletion), sync-health classification and aggregation, domain metrics, retention, seed |
 | Validation conformance | the same 39 cases in `contracts/validation-cases.json` run by both engines | 2 | 39 + 39 | Python and TypeScript validators agree on every rule, type, `showIf` and cross-rule |
-| PWA unit | Vitest, fake-indexeddb, Node Web Crypto | 11 | 179 | Outbox transition table (every legal and illegal transition), engine (S1–S3, 500-item drain, AIMD, breaker, backoff with Retry-After, leases and locks, auth pause, revocation, device-state reporting), vault (bounded `listDue`, pipelined `applyMany`, sync-log ring buffer), quota handling, crypto (round trip, AAD tamper, wrong key, non-extractable keys, escrow re-wrap), session (offline unlock, rate limiting, PIN, 12 h expiry, crypto-shred, **shared-phone switch**), HTTP client (single-flight refresh, error classification from the contract), UUIDv7, i18n (completeness, placeholders, pseudo-locale), update holds |
+| PWA unit | Vitest, fake-indexeddb, Node Web Crypto | 13 | 190 | Form-builder model (ids, type changes, rule cleaning, reference repair, versions, problem locations), network-meter classification, outbox transition table (every legal and illegal transition), engine (S1–S3, 500-item drain, AIMD, breaker, backoff with Retry-After, leases and locks, auth pause, revocation, device-state reporting), vault (bounded `listDue`, pipelined `applyMany`, sync-log ring buffer), quota handling, crypto (round trip, AAD tamper, wrong key, non-extractable keys, escrow re-wrap), session (offline unlock, rate limiting, PIN, 12 h expiry, crypto-shred, **shared-phone switch**), HTTP client (single-flight refresh, error classification from the contract), UUIDv7, i18n (completeness, placeholders, pseudo-locale), update holds |
 | Component | Testing Library | 1 | 3 | Device check |
-| E2E | Playwright on mobile (Pixel 7) and desktop Chromium, axe-core | 4 + 2 opt-in | 21 per project | Install/offline cold start, cache and security headers, S1 offline capture → reload → sync exactly once, S2 lost acknowledgement, server 503 → backoff → recovery, S3 conflict → combine, supervisor dashboard, empty states, storage full during Save, session expired while offline, keyboard-only form, focus management, 320 px reflow (English + pseudo-locale), pseudo-locale coverage of every visible string, theme/language persistence, axe on every screen in light, dark and outdoor |
+| E2E | Playwright on mobile (Pixel 7) and desktop Chromium, axe-core | 5 + 2 opt-in | 24 per project | Admin builds and publishes a form and a CHW on another phone fills it in, form builder at 320 px (English + pseudo-locale), network meter (strength, details, Offline), install/offline cold start, cache and security headers, S1 offline capture → reload → sync exactly once, S2 lost acknowledgement, server 503 → backoff → recovery, S3 conflict → combine, supervisor dashboard, empty states, storage full during Save, session expired while offline, keyboard-only form, focus management, 320 px reflow (English + pseudo-locale), pseudo-locale coverage of every visible string, theme/language persistence, axe on every screen in light, dark and outdoor |
 | Performance | Playwright + CDP throttling, `scripts/loadtest.py`, size-limit | 2 | — | §5 |
 | Visual review | Playwright screenshots (`VISUAL_DIR`) | 1 | — | 360 / 768 / 1280 px × light / dark / outdoor (manual review, Phase 4) |
 
@@ -62,7 +62,7 @@ Two suites are opt-in because they need extra set-up or take long (`PERF=1`,
 
 ### 2.1 E2E stability on this host
 
-The suite was run in full five times during Phase 5. Every failure lined up with a host load
+The suite was run in full six times during Phase 5. Every failure lined up with a host load
 spike from other workloads on the same laptop, and each failed test passed when re-run
 alone:
 
@@ -71,7 +71,9 @@ alone:
 | 1 | ~55 | 36 / 40 | *storage full during Save* (both viewports): **real defect P5-2**; *supervisor dashboard* (both): **real defect P5-5** |
 | 2 | 81 | 36 / 38 (+2 did not run) | S3 conflict (both): *Edit this form* stayed disabled for 60 s. It is disabled only while `navigator.onLine` is false; macOS's network daemon was busy during the spike. Passed 2/2 on rerun. Not reproduced. |
 | 3 | 399 | 34 / 39 | 5 timeouts across the desktop project |
-| 4 (final) | 288 | **41 / 42** | keyboard-only form (mobile): the 30 s sign-in wait expired during PBKDF2 under load. Passed 3/3 on rerun. |
+| 4 | 288 | 41 / 42 | keyboard-only form (mobile): the 30 s sign-in wait expired during PBKDF2 under load. Passed 3/3 on rerun. |
+| 5 | 191 | 45 / 48 | pseudo-locale gate (both): the closed connection dialog's "4G" value was in the DOM — **real defect, fixed** (dialog body rendered only when open; measured values marked as data); builder flow (desktop): renderer stalled during the spike, passed on rerun |
+| 6 (final) | 186 | **48 / 48** | — |
 | Perf | 122 (5-min) | 2 / 3 | Real-API drain: the test went offline before the service worker finished installing (a consequence of fix B5). The test now waits for offline readiness, as a CHW does (checklist 1.4); the simulator now reports such failures instead of failing silently. |
 
 Treat a red run on a loaded machine as "re-run first". R7 (hermetic E2E on dedicated CI
@@ -98,6 +100,8 @@ runners) removes this ambiguity.
 | Accessibility WCAG 2.2 AA (§16.8) | axe zero violations on every screen in three themes; keyboard-only and focus E2E; manual 8.4–8.5 (TalkBack, large text) |
 | OpenAPI documentation (§10) | `test_openapi.py` (schema validates, no warnings); drift check |
 | Observability (§15) | `test_metrics.py`, `test_metrics_domain.py`, `test_logging.py` (PHI scrubber), request-id middleware tests |
+| Admins create and manage many field forms (form builder) | API `test_form_builder_*`, `test_only_drafts_can_be_deleted`; unit `builder-model.test.ts`; E2E `an admin builds and publishes a form; a field worker receives it and fills it in`, `form builder screens never scroll sideways at 320 px…`; axe on the builder |
+| Offline operation with a network-strength meter | E2E `the header meter shows connection strength, and Offline without network`; unit `link-quality.test.ts`; offline evidence as above (S1, cold start offline) |
 | Budgets (§4) | §5 below |
 
 ---
@@ -115,7 +119,7 @@ runners) removes this ambiguity.
 | E7 | … ack received but storing it fails (quota) | Engine → PAUSED_QUOTA; later replay | `quota.test.ts` `engine PAUSED_QUOTA then recovery as a replay` | ✅ |
 | E8 | Duplicate submissions | Exactly one row per `client_uuid`; resends answered as replays | E4 evidence + concurrency test + `fieldsync_duplicates_prevented_total` | ✅ |
 | E9 | Expired token while offline | Forms wait; *Sign in again*; then they send | E2E `session expired while offline…`; engine `expired session pauses without counting attempts` | ✅ |
-| E10 | 500-item queue | Drains in AIMD batches; UI stays responsive (paged list) | engine `drains a 500-item backlog…`; perf drain via real API on Slow 3G (61 s); Sync screen pages 50 at a time | ✅ |
+| E10 | 500-item queue | Drains in AIMD batches; UI stays responsive (paged list) | engine `drains a 500-item backlog…`; perf drain via real API on Slow 3G (31 s); Sync screen pages 50 at a time | ✅ |
 | E11 | Storage quota exceeded | Autosave failure visible; Save never navigates away; nothing lost; retry works | `quota.test.ts`; E2E `storage full during Save…` | ✅ **after fix P5-2** |
 | E12 | Clock skew | Server time authoritative; skew recorded and flagged | API `test_clock_skew_is_recorded` | ✅ |
 | E13 | Template retired while queued | Item FAILED with a plain explanation; *Fix and send again* moves answers to the newest version | API `test_unknown_and_retired_templates`; runtime fix P5-4 (manual 4.4 on device) | ✅ **after fixes P5-3, P5-4** |
@@ -158,7 +162,7 @@ Two runs are reported: **run 3** (all performance fixes, host load ≈ 10–25, 
 | Save (encrypt + atomic write) p95 ≤ 50 ms at 4× CPU | 41 ms (run 3) · 114 ms (final, under load bursts); was 72.9 ms | ✅ in the quiet run; p95 is load-sensitive — confirm on devices |
 | Autosave p95 ≤ 20 ms at 4× CPU | 20.8 ms (run 3) · 41 ms (final) | ⚠️ marginal (B10) — debounced and off the input path |
 | 500 pending without UI degradation | Sync screen data for 500 items: 148 ms (run 3) · 361 ms (final) at 4× (was 601 ms); list paged 50 at a time | ✅ |
-| Drain 500 on simulated 3G ≤ 2 min | **61 s** through the real API (23 batch requests), Slow 3G + 4× CPU | ✅ |
+| Drain 500 on simulated 3G ≤ 2 min | **31.4 s** through the real API (23 batch requests), Slow 3G + 4× CPU, final code (61 s after the first round of fixes) | ✅ |
 | Offline unlock (PBKDF2-SHA256 600k) ≤ 3 s | 0.69 s (run 3) · 1.72 s (final) p50 at 4× desktop CPU | ✅ on the proxy; **must be confirmed on a low-end phone** (risk B7) |
 | API single upsert p95 ≤ 150 ms at 50 req/s on 2 vCPU | Not achievable on this host: saturates at ~40–45 req/s (both workers at 100 % CPU, the Docker VM receiving ~1 physical core). At 20 req/s: server-side p50 28.5 ms / p95 125 ms; client-side p95 191 ms–902 ms between runs | ⚠️ **not verified** — §5.4 |
 

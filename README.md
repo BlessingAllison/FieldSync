@@ -3,9 +3,9 @@
 A mobile-first progressive web app for County Health Team workers to capture patient and facility data fully offline,
 with encrypted on-device storage, idempotent background sync, conflict handling, and a supervisor sync-health dashboard.
 
-> **Demonstration project.** FieldSync is a portfolio project modelling the needs described in the NHIC (Ministry of
-> Health, Liberia) Software Developer TOR. It is not in production use, is not an official MoH system, and contains no
-> real patient data. All facilities, users, patients and form templates in this repository are synthetic/illustrative.
+Administrators design the forms in a built-in **form builder** and publish them to every phone; workers capture
+offline and FieldSync sends when the network allows, with a live **network-strength meter** in the header.
+The sample facilities, accounts and records created by `make seed` are synthetic.
 
 ## Status
 
@@ -51,7 +51,10 @@ back-office at `/api/admin/`).
 4. **Supervisor edits the last sent form**, then edit the same form on the phone → the conflict
    screen shows a field diff and offers *Combine both*.
 5. Sign in as `supervisor.bong` to see the county sync-health dashboard.
-6. Settings → *Appearance* → **Outdoor** for maximum contrast in sunlight; *Language* →
+6. Sign in as `admin` → **Forms** to build a new form: add steps and questions, try it in the
+   live preview, **Publish** — CHW phones receive it the next time they connect.
+7. The bars at the top right show connection strength to the server; tap them for details.
+8. Settings → *Appearance* → **Outdoor** for maximum contrast in sunlight; *Language* →
    Kpelle shows the placeholder pseudo-locale (every UI string marked `⟦kpe⟧`, not a translation).
 
 - PWA: <http://localhost:8090> (install it from the browser menu to protect its storage)

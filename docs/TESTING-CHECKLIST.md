@@ -5,7 +5,7 @@ FieldSync, and again after every release. Automated tests (see [QA-REPORT.md](QA
 run in desktop Chromium with emulated networks; they cannot prove behaviour on a
 three-year-old Android phone on 2G in the sun. That is what this checklist is for.
 
-> Use only the synthetic demo accounts and made-up patients. No real patient data, ever.
+> Run this checklist with test accounts and made-up patients only, never with real patient records.
 
 Record each result as ✅ pass, ❌ fail (with the support code and a photo of the screen), or
 ➖ not applicable. A pilot starts only when every **Blocking** item passes.
@@ -92,6 +92,27 @@ Record each result as ✅ pass, ❌ fail (with the support code and a photo of t
 | 6.1 | Deploy a new version while a phone has a form **open** | **A new version … is ready**; it does not reload until the form is saved | |
 | 6.2 | Tap **Update now** on Home | Reloads to the new version; waiting forms still there | |
 | 6.3 | A phone offline during the deploy | Keeps working on the old version; updates after reconnecting | |
+
+## 6b. Network meter
+
+| # | Step | Expected | Result |
+|---|---|---|---|
+| 6b.1 | Good 3G/4G signal | Header shows 3–4 bars (**Good**/**Strong**); details show a server response time | |
+| 6b.2 | 2G-only mode | 1–2 bars (**Weak**/**Fair**) within a minute | |
+| 6b.3 | Airplane mode | **Offline** at once | |
+| 6b.4 | Connect to Wi-Fi with a sign-in page (captive portal) but do not sign in | **No server** after about a minute; forms are not marked failed | |
+| 6b.5 | Leave FieldSync in the background for 1 h on mobile data | Mobile data used by FieldSync stays near zero (no probes in the background) | |
+
+## 6c. Form builder (national admin, on a computer)
+
+| # | Step | Expected | Result |
+|---|---|---|---|
+| 6c.1 | **Forms → New form**, build a 2-step form with a yes/no question and a choice shown only on "Yes" | Every change shows **All changes saved**; preview hides/shows the choice | |
+| 6c.2 | Enter an impossible rule (lowest 10, highest 5) | A problem is listed with its step and question; nothing is saved until fixed | |
+| 6c.3 | **Publish**; a CHW phone signs in (or reopens online) | The new form appears under **New form** and can be completed offline | |
+| 6c.4 | **New version** of it, add a question, publish | Phones get version 2; forms saved on version 1 still send for 30 days | |
+| 6c.5 | **Retire** version 1 while a phone holds a v1 form | That form shows *replaced by a newer version*; **Fix and send again** moves it to v2 | |
+| 6c.6 | Open the builder on a phone | Usable without sideways scrolling; Edit/Preview tabs | |
 
 ## 7. Supervisor dashboard
 

@@ -4,8 +4,6 @@ For the developers and system administrators who run, change and support FieldSy
 Architecture and the reasons behind it are in [ADD.md](ADD.md); measured behaviour and
 known weaknesses are in [QA-REPORT.md](QA-REPORT.md).
 
-> FieldSync is a demonstration project. "Production" below describes what a real deployment
-> would need. Nothing in this repository has been deployed for real use.
 
 Contents:
 
@@ -203,30 +201,48 @@ configured; restore that key from the secrets backup first.
 
 ---
 
-## 7. Form templates: publishing a new version
+## 7. Form templates: building and publishing
 
 Templates are versioned and **immutable once published** (a database trigger enforces it).
 Phones may hold forms for older versions for days, so the server keeps accepting a superseded
 version for `TEMPLATE_ACCEPT_GRACE_DAYS` (30).
 
-1. Write the definition in the DSL (`contracts/form-template.schema.json`; examples in
-   `contracts/examples/`). Every label, hint, option and **unit word** is an i18n map
-   (`{"en": "...", "kpe": "..."}`); a bare-string `unit` is a language-neutral symbol
-   (`"mm"`, `"°C"`).
-2. Create a draft as a national admin: `POST /api/v1/form-templates` with the definition.
-   The server validates it against the meta-schema **and** semantic rules (duplicate ids,
-   rule/type mismatches, `showIf` pointing forward, min > max, unknown cross-rule fields).
-3. Review the draft: open it in a test phone/browser against a staging server, fill it in,
-   and check validation messages in every language.
-4. Publish: `POST /api/v1/form-templates/<id>/publish`. The previous version becomes
-   *superseded* and is accepted for the grace window. Phones download the new version the
-   next time they refresh reference data (sign-in or app start while online).
-5. If a version must stop being accepted earlier (for example a clinical error),
-   `POST /api/v1/form-templates/<id>/retire`. Forms still queued on phones for that version
-   are then refused with `template_retired`; the CHW sees *This form type has been replaced
-   by a newer version* and **Fix and send again** moves the answers to the newest version on
-   the phone (answers to removed questions are dropped; new required questions must be
-   answered).
+### 7.1 With the form builder (normal way)
+
+National administrators open **Forms** in the app (`/admin/forms`). It needs network.
+
+1. **New form** → name it and choose whether it is about a person or a facility. A draft is
+   created with one step and one question.
+2. Edit the draft: add steps and questions, choose the answer type (text, whole number,
+   decimal, yes/no, one choice, several choices, date, phone), mark required answers and
+   personal identifiers, set limits (lowest/highest, length, allowed dates, number of choices),
+   units, display style, and *Show this question only when…* conditions. Kpelle labels are
+   optional per question. Every change is checked by the server and saved automatically;
+   problems are listed in plain words with their step and question.
+3. Use the **Preview** (beside the editor on a computer, a tab on a phone) to try the form
+   exactly as a worker will see it, including conditions and validation messages.
+4. **Publish**. Phones download the new form the next time they connect. The previous version
+   of the same form becomes *Replaced* and stays accepted for 30 days.
+5. To change a published form, use **New version** (a draft copy with the next version
+   number), edit, and publish. **Copy as new form** starts a separate form from an existing one.
+6. **Retire** stops a version from being used before its 30 days are over (for example a
+   clinical error). Forms still queued on phones for it are refused with `template_retired`;
+   the worker sees *This form type has been replaced by a newer version* and **Fix and send
+   again** moves the answers to the newest version on the phone (answers to removed questions
+   are dropped; new required questions must be answered).
+7. Drafts can be deleted; published versions cannot (submissions reference them).
+
+Choice values and question codes are generated from the labels while the form is a draft
+and are fixed once it is published (exports and reports use them). Change them under
+**Advanced** before publishing if a reporting convention requires specific codes.
+
+### 7.2 Through the API (automation)
+
+The same lifecycle is available to scripts: `POST /api/v1/form-templates` (create draft),
+`PATCH /api/v1/form-templates/<id>` (update draft), `POST /api/v1/form-templates/validate`
+(dry run), `POST …/<id>/publish`, `POST …/<id>/retire`, `DELETE …/<id>` (drafts only),
+`GET /api/v1/form-templates/manage` (all versions). Definitions follow
+`contracts/form-template.schema.json` (examples in `contracts/examples/`).
 
 **Validation rules live in two engines** (Python on the server, TypeScript on the phone).
 Any change to the DSL or a rule must be added to `contracts/validation-cases.json`; both test

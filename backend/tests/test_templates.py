@@ -129,3 +129,57 @@ def test_invalid_definition_returns_paths_not_crash(world: World) -> None:
     response = world.client("admin").post("/api/v1/form-templates", body, format="json")
     assert response.status_code == 422
     assert response.json()["error"]["details"]["definition"]
+
+
+def test_form_builder_endpoints_are_admin_only(world: World) -> None:
+    body = {"definition": _v(2)}
+    for who in ("chw_bg", "sup_bg"):
+        client = world.client(who)
+        assert client.get("/api/v1/form-templates/manage").status_code == 403
+        assert (
+            client.post("/api/v1/form-templates/validate", body, format="json").status_code == 403
+        )
+        assert client.get(f"/api/v1/form-templates/{world.template.id}").status_code == 403
+
+
+def test_form_builder_lists_every_version_with_usage_and_validates_without_saving(
+    world: World,
+) -> None:
+    admin = world.client("admin")
+    bad = _v(2)
+    bad["steps"][0]["fields"][0]["label"] = {}
+    dry = admin.post("/api/v1/form-templates/validate", {"definition": bad}, format="json")
+    assert dry.status_code == 200
+    result = dry.json()["data"]
+    assert result["valid"] is False
+    assert any("'en' is required" in p for p in result["problems"])
+    ok = admin.post("/api/v1/form-templates/validate", {"definition": _v(2)}, format="json")
+    assert ok.json()["data"] == {"valid": True, "problems": []}
+    assert not FormTemplate.objects.filter(version=2).exists()  # a dry run stores nothing
+
+    draft = admin.post("/api/v1/form-templates", {"definition": _v(2)}, format="json").json()[
+        "data"
+    ]
+    rows = admin.get("/api/v1/form-templates/manage").json()["data"]
+    versions = [
+        (r["code"], r["version"], r["status"]) for r in rows if r["code"] == "iccm-child-u5"
+    ]
+    assert versions == [("iccm-child-u5", 2, "draft"), ("iccm-child-u5", 1, "published")]
+    assert all("submission_count" in r and "created_at" in r for r in rows)
+    detail = admin.get(f"/api/v1/form-templates/{draft['id']}").json()["data"]
+    assert detail["status"] == "draft"
+    assert detail["definition"]["version"] == 2
+
+
+def test_only_drafts_can_be_deleted(world: World) -> None:
+    admin = world.client("admin")
+    draft = admin.post("/api/v1/form-templates", {"definition": _v(2)}, format="json").json()[
+        "data"
+    ]
+    refused = admin.delete(f"/api/v1/form-templates/{world.template.id}")
+    assert refused.status_code == 403
+    deleted = admin.delete(f"/api/v1/form-templates/{draft['id']}")
+    assert deleted.status_code == 200
+    assert deleted.json()["data"] == {"id": draft["id"], "deleted": True}
+    assert not FormTemplate.objects.filter(id=draft["id"]).exists()
+    assert admin.get(f"/api/v1/form-templates/{draft['id']}").status_code == 404

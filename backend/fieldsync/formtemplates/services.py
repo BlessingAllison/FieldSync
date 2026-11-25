@@ -57,7 +57,7 @@ def definition_problems(definition: Any) -> list[str]:  # noqa: PLR0912
     convention keeps one error style across the API).
     """
     problems = [
-        f"{'/'.join(str(p) for p in error.absolute_path) or '<root>'}: {error.validator}"
+        f"{'/'.join(str(p) for p in error.absolute_path) or '<root>'}: {_describe(error)}"
         for error in _meta_validator().iter_errors(definition)
     ]
     if problems:
@@ -105,6 +105,17 @@ def definition_problems(definition: Any) -> list[str]:  # noqa: PLR0912
     return problems
 
 
+def _describe(error: Any) -> str:
+    """Short, human-readable reason for a meta-schema error (shown in the form builder)."""
+    if error.validator == "required":
+        return str(error.message).replace("is a required property", "is required")
+    if error.validator == "pattern":
+        return f"invalid format ({error.validator_value})"
+    if error.validator in {"minItems", "maxItems", "minLength", "maxLength", "enum", "type"}:
+        return str(error.message)
+    return str(error.validator)
+
+
 def _assert_valid(definition: Any) -> None:
     problems = definition_problems(definition)
     if problems:
@@ -146,6 +157,22 @@ def update_draft(template: FormTemplate, *, definition: dict[str, Any]) -> FormT
     template.definition_hash = sha256_hex(definition)
     template.save()
     return template
+
+
+def delete_draft(template: FormTemplate) -> None:
+    """Only drafts can be deleted: published versions are referenced by submissions."""
+    if template.status != TemplateStatus.DRAFT:
+        raise ApiError(ErrorCode.PERMISSION_DENIED, "Only drafts can be deleted; retire instead.")
+    template.delete()
+
+
+def all_templates_for_admin() -> Any:
+    """Every version of every template, newest first per code, with usage counts."""
+    from django.db.models import Count
+
+    return FormTemplate.objects.annotate(submission_count=Count("submissions")).order_by(
+        "code", "-version"
+    )
 
 
 @transaction.atomic

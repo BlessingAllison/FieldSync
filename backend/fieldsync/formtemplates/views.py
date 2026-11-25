@@ -13,6 +13,9 @@ from fieldsync.common.openapi import ErrorEnvelopeSerializer, enveloped
 from fieldsync.formtemplates import services
 from fieldsync.formtemplates.models import FormTemplate
 from fieldsync.formtemplates.serializers import (
+    DefinitionProblemsSerializer,
+    DeletedSerializer,
+    FormTemplateAdminSerializer,
     FormTemplateSerializer,
     TemplateDefinitionRequestSerializer,
 )
@@ -81,8 +84,66 @@ class FormTemplateVersionView(APIView):
         return conditional_response(request, FormTemplateSerializer(template).data)
 
 
+class FormTemplateManageListView(APIView):
+    permission_classes = (IsAdmin,)
+
+    @extend_schema(
+        operation_id="form_templates_manage_list",
+        tags=["templates"],
+        description="Admin form builder: every version of every template, drafts included.",
+        responses={200: enveloped(FormTemplateAdminSerializer, "FormTemplateAdminList", many=True)},
+    )
+    def get(self, request: Request) -> ApiResponse:
+        qs = services.all_templates_for_admin()
+        return ApiResponse(FormTemplateAdminSerializer(qs, many=True).data)
+
+
+class FormTemplateValidateView(APIView):
+    permission_classes = (IsAdmin,)
+
+    @extend_schema(
+        operation_id="form_templates_validate",
+        tags=["templates"],
+        description="Dry run: every reason the definition could not be saved (nothing is stored).",
+        request=TemplateDefinitionRequestSerializer,
+        responses={200: enveloped(DefinitionProblemsSerializer, "DefinitionProblems")},
+    )
+    def post(self, request: Request) -> ApiResponse:
+        problems = services.definition_problems(_definition(request))
+        return ApiResponse({"valid": not problems, "problems": problems})
+
+
 class FormTemplateDetailView(APIView):
     permission_classes = (IsAdmin,)
+
+    @extend_schema(
+        operation_id="form_templates_detail",
+        tags=["templates"],
+        responses={
+            200: enveloped(FormTemplateAdminSerializer, "FormTemplateAdmin"),
+            404: OpenApiResponse(ErrorEnvelopeSerializer),
+        },
+    )
+    def get(self, request: Request, template_id: str) -> ApiResponse:
+        template = services.all_templates_for_admin().filter(id=template_id).first()
+        if template is None:
+            raise ApiError(ErrorCode.NOT_FOUND)
+        return ApiResponse(FormTemplateAdminSerializer(template).data)
+
+    @extend_schema(
+        operation_id="form_templates_delete",
+        tags=["templates"],
+        request=None,
+        responses={
+            200: enveloped(DeletedSerializer, "TemplateDeleted"),
+            403: OpenApiResponse(ErrorEnvelopeSerializer),
+        },
+    )
+    def delete(self, request: Request, template_id: str) -> ApiResponse:
+        template = _get(template_id)
+        deleted_id = template.id
+        services.delete_draft(template)
+        return ApiResponse({"id": deleted_id, "deleted": True})
 
     @extend_schema(
         operation_id="form_templates_update",

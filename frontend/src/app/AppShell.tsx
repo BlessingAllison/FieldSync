@@ -1,8 +1,9 @@
 import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, m } from 'framer-motion';
-import { CloudOff, RefreshCw, UserRound, Wifi } from 'lucide-react';
+import { RefreshCw, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useOutlet } from 'react-router-dom';
 
+import { LinkIndicator } from '@/app/LinkIndicator';
 import { NoticeBar } from '@/app/NoticeBar';
 import { RouteAnnouncer } from '@/app/RouteAnnouncer';
 import { isFocusRoute, navItems } from '@/app/nav';
@@ -10,6 +11,7 @@ import { useIdleLock } from '@/app/useIdleLock';
 import { LockScreen } from '@/features/auth/LockScreen';
 import { type MessageKey, useT } from '@/i18n';
 import { cn } from '@/lib/cn';
+import { APP_VERSION } from '@/core/version';
 import { OfflineReadyStrip } from '@/pwa/OfflineReadyStrip';
 import { UpdatePrompt } from '@/pwa/UpdatePrompt';
 import { useApp } from '@/stores/app';
@@ -86,14 +88,7 @@ export function AppShell() {
                   <Badge count={queue} />
                 </Link>
               )}
-              <span className="flex items-center gap-1.5 rounded-full px-2 text-sm font-semibold">
-                {online ? (
-                  <Wifi aria-hidden className="size-4" />
-                ) : (
-                  <CloudOff aria-hidden className="size-4" />
-                )}
-                {online ? t('network.online') : t('network.offlineShort')}
-              </span>
+              <LinkIndicator />
               {unlocked && profile && (
                 <span className="hidden items-center gap-2 border-l border-primary-foreground/30 pl-3 text-sm lg:flex">
                   <UserRound aria-hidden className="size-4" />
@@ -191,7 +186,7 @@ export function AppShell() {
                   unlocked ? 'pb-28 lg:pb-6' : 'pb-6',
                 )}
               >
-                {t('app.demoNotice')}
+                {t('app.footer', { version: APP_VERSION })}
               </footer>
             )}
           </div>

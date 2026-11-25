@@ -5,8 +5,9 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { router } from './app/router';
-import { boot } from './app/runtime';
+import { api, boot } from './app/runtime';
 import { registerServiceWorker } from './pwa/sw-registration';
+import { startLinkMonitor } from './stores/link';
 import { startNetworkListener } from './stores/network';
 import { loadPreferences } from './stores/preferences';
 
@@ -14,6 +15,7 @@ const container = document.getElementById('root');
 if (!container) throw new Error('#root missing from index.html');
 
 startNetworkListener();
+startLinkMonitor({ probe: () => api.probe() });
 registerServiceWorker();
 
 // Theme and language first (no flash of the wrong theme/language), then the session.
