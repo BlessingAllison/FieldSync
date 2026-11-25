@@ -1,0 +1,164 @@
+{
+  "code": "facility-stock-report",
+  "version": 1,
+  "subject": "facility",
+  "title": {
+    "en": "Monthly essential commodities report"
+  },
+  "description": {
+    "en": "Illustrative facility-level stock report. Not an official Ministry of Health form."
+  },
+  "steps": [
+    {
+      "id": "period",
+      "title": {
+        "en": "Reporting period"
+      },
+      "fields": [
+        {
+          "id": "report_date",
+          "type": "date",
+          "required": true,
+          "label": {
+            "en": "Report date"
+          },
+          "rules": {
+            "pastOnly": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "stock",
+      "title": {
+        "en": "Stock on hand"
+      },
+      "fields": [
+        {
+          "id": "act_doses",
+          "type": "integer",
+          "required": true,
+          "widget": "stepper",
+          "unit": {
+            "en": "doses"
+          },
+          "label": {
+            "en": "ACT (antimalarial)"
+          },
+          "rules": {
+            "min": 0,
+            "max": 100000
+          }
+        },
+        {
+          "id": "rdt_kits",
+          "type": "integer",
+          "required": true,
+          "widget": "stepper",
+          "unit": {
+            "en": "kits"
+          },
+          "label": {
+            "en": "Malaria RDT kits"
+          },
+          "rules": {
+            "min": 0,
+            "max": 100000
+          }
+        },
+        {
+          "id": "ors_sachets",
+          "type": "integer",
+          "required": true,
+          "widget": "stepper",
+          "unit": {
+            "en": "sachets"
+          },
+          "label": {
+            "en": "ORS sachets"
+          },
+          "rules": {
+            "min": 0,
+            "max": 100000
+          }
+        },
+        {
+          "id": "stockout_any",
+          "type": "boolean",
+          "required": true,
+          "widget": "toggle",
+          "label": {
+            "en": "Any stock-out this month?"
+          }
+        },
+        {
+          "id": "stockout_items",
+          "type": "multiselect",
+          "required": true,
+          "widget": "cards",
+          "label": {
+            "en": "Which items ran out?"
+          },
+          "showIf": {
+            "field": "stockout_any",
+            "equals": true
+          },
+          "options": [
+            {
+              "value": "act",
+              "label": {
+                "en": "ACT"
+              }
+            },
+            {
+              "value": "rdt",
+              "label": {
+                "en": "RDT kits"
+              }
+            },
+            {
+              "value": "ors",
+              "label": {
+                "en": "ORS"
+              }
+            },
+            {
+              "value": "zinc",
+              "label": {
+                "en": "Zinc"
+              }
+            }
+          ],
+          "rules": {
+            "minSelected": 1
+          }
+        },
+        {
+          "id": "cold_chain_ok",
+          "type": "boolean",
+          "required": true,
+          "widget": "toggle",
+          "label": {
+            "en": "Cold chain functioning"
+          }
+        },
+        {
+          "id": "fridge_temp_c",
+          "type": "decimal",
+          "unit": "°C",
+          "label": {
+            "en": "Fridge temperature"
+          },
+          "rules": {
+            "min": -10,
+            "max": 30
+          },
+          "showIf": {
+            "field": "cold_chain_ok",
+            "equals": true
+          }
+        }
+      ]
+    }
+  ]
+}

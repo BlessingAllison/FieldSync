@@ -1,0 +1,10 @@
+{
+  "$comment": "The service worker and everything it imports (src/core/**) must compile without DOM types. This is how the 'core is framework-free and runs in the SW' boundary (ADD D2) is enforced by the compiler.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "WebWorker"],
+    "types": []
+  },
+  "include": ["src/sw.ts", "src/core/**/*.ts"],
+  "exclude": ["src/core/**/*.test.ts"]
+}

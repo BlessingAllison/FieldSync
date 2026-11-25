@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (HSL triplets). Outdoor-first: body text ≥ 12:1 on the background,
+ * secondary text ≥ 7:1, status text ≥ 4.5:1 on its tinted background.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+    --radius: 0.75rem;
+
+    --background: 60 18% 95%;
+    --foreground: 200 30% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 30% 8%;
+    --primary: 185 77% 18%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 185 25% 90%;
+    --secondary-foreground: 185 77% 14%;
+    --muted: 60 10% 90%;
+    --muted-foreground: 200 14% 28%;
+    --accent: 185 30% 88%;
+    --accent-foreground: 185 77% 14%;
+    --destructive: 0 72% 38%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 60 6% 72%;
+    --input: 200 10% 45%;
+    --ring: 185 90% 28%;
+
+    --status-pending: 32 95% 28%;
+    --status-pending-bg: 45 100% 90%;
+    --status-sending: 214 80% 36%;
+    --status-sending-bg: 214 90% 93%;
+    --status-sent: 145 65% 22%;
+    --status-sent-bg: 140 55% 90%;
+    --status-failed: 0 72% 36%;
+    --status-failed-bg: 0 85% 94%;
+    --status-conflict: 271 55% 38%;
+    --status-conflict-bg: 271 70% 94%;
+
+    /*
+     * Chart FILL tokens for status data (validated with the dataviz validator, bar order
+     * critical · warning · unknown · good: worst adjacent CVD ΔE 12.5, normal-vision ΔE 21).
+     * Distinct from the --status-* TEXT tokens, which are darker for 4.5:1 text contrast.
+     * *-ink = label colour inside the fill, chosen for ≥ 4.5:1.
+     */
+    --viz-critical: #d03b3b;
+    --viz-critical-ink: #ffffff;
+    --viz-warning: #fab219;
+    --viz-warning-ink: #0b0b0b;
+    --viz-unknown: #8a8f93;
+    --viz-unknown-ink: #0b0b0b;
+    --viz-good: #0ca30c;
+    --viz-good-ink: #0b0b0b;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      color-scheme: dark;
+      --background: 200 22% 7%;
+      --foreground: 60 15% 95%;
+      --card: 200 20% 11%;
+      --card-foreground: 60 15% 95%;
+      --primary: 180 55% 62%;
+      --primary-foreground: 200 30% 8%;
+      --secondary: 185 30% 18%;
+      --secondary-foreground: 180 40% 88%;
+      --muted: 200 15% 16%;
+      --muted-foreground: 60 8% 78%;
+      --accent: 185 30% 20%;
+      --accent-foreground: 180 40% 90%;
+      --destructive: 0 80% 66%;
+      --destructive-foreground: 200 30% 8%;
+      --border: 200 12% 30%;
+      --input: 200 10% 55%;
+      --ring: 180 60% 62%;
+      --status-pending: 42 95% 65%;
+      --status-pending-bg: 38 60% 14%;
+      --status-sending: 210 90% 72%;
+      --status-sending-bg: 214 50% 16%;
+      --status-sent: 140 55% 62%;
+      --status-sent-bg: 145 40% 13%;
+      --status-failed: 0 85% 72%;
+      --status-failed-bg: 0 45% 15%;
+      --status-conflict: 270 75% 78%;
+      --status-conflict-bg: 271 35% 17%;
+      /* dark surface: unknown re-stepped (CVD ΔE 14.7 vs good; all fills ≥ 3:1) */
+      --viz-unknown: #6b6b67;
+      --viz-unknown-ink: #ffffff;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --background: 200 22% 7%;
+    --foreground: 60 15% 95%;
+    --card: 200 20% 11%;
+    --card-foreground: 60 15% 95%;
+    --primary: 180 55% 62%;
+    --primary-foreground: 200 30% 8%;
+    --secondary: 185 30% 18%;
+    --secondary-foreground: 180 40% 88%;
+    --muted: 200 15% 16%;
+    --muted-foreground: 60 8% 78%;
+    --accent: 185 30% 20%;
+    --accent-foreground: 180 40% 90%;
+    --destructive: 0 80% 66%;
+    --destructive-foreground: 200 30% 8%;
+    --border: 200 12% 30%;
+    --input: 200 10% 55%;
+    --ring: 180 60% 62%;
+    --status-pending: 42 95% 65%;
+    --status-pending-bg: 38 60% 14%;
+    --status-sending: 210 90% 72%;
+    --status-sending-bg: 214 50% 16%;
+    --status-sent: 140 55% 62%;
+    --status-sent-bg: 145 40% 13%;
+    --status-failed: 0 85% 72%;
+    --status-failed-bg: 0 45% 15%;
+    --status-conflict: 270 75% 78%;
+    --status-conflict-bg: 271 35% 17%;
+    --viz-unknown: #6b6b67;
+    --viz-unknown-ink: #ffffff;
+  }
+
+  /*
+   * Outdoor: maximum-contrast light theme for direct sunlight. Pure black text on white,
+   * darker borders and inputs, saturated status colours on white (no tinted fills).
+   */
+  :root[data-theme='outdoor'] {
+    color-scheme: light;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --primary: 185 100% 12%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 185 30% 90%;
+    --secondary-foreground: 185 100% 10%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 15%;
+    --accent: 185 30% 90%;
+    --accent-foreground: 185 100% 10%;
+    --destructive: 0 90% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 35%;
+    --input: 0 0% 15%;
+    --ring: 220 100% 35%;
+    --status-pending: 30 100% 22%;
+    --status-pending-bg: 0 0% 100%;
+    --status-sending: 220 100% 30%;
+    --status-sending-bg: 0 0% 100%;
+    --status-sent: 145 100% 18%;
+    --status-sent-bg: 0 0% 100%;
+    --status-failed: 0 90% 30%;
+    --status-failed-bg: 0 0% 100%;
+    --status-conflict: 275 80% 32%;
+    --status-conflict-bg: 0 0% 100%;
+  }
+
+  :root[data-theme='outdoor'] body {
+    font-weight: 500;
+  }
+
+  html {
+    /* 1rem = 17px: larger base for outdoor reading and low-DPI screens. */
+    font-size: 106.25%;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply min-h-dvh bg-background font-sans leading-normal text-foreground antialiased;
+    overscroll-behavior-y: none;
+    /* Long unbreakable tokens (IDs, URLs, long translated words) wrap instead of forcing
+       horizontal scroll (WCAG 1.4.10 reflow); normal words are never split. */
+    overflow-wrap: break-word;
+  }
+
+  *,
+  ::before,
+  ::after {
+    @apply border-border;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-[3px] ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

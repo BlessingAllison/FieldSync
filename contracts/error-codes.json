@@ -1,0 +1,34 @@
+{
+  "$comment": "Single source of truth for API error codes. The backend ErrorCode enum and the generated frontend module are checked against this file in CI. 'class' drives the sync engine's queue transition (ADD §10.2, §12.2).",
+  "version": 1,
+  "classes": {
+    "permanent": "Retrying the same request cannot succeed; the item moves to FAILED and needs user action.",
+    "transient": "Retry later with backoff; the item moves to RETRY_WAIT.",
+    "auth": "Credentials are missing or expired; refresh once, otherwise pause the engine until sign-in. Attempts are not counted.",
+    "conflict": "The server holds a newer version; the item moves to CONFLICT with the server copy attached.",
+    "revoked": "This device has been revoked; crypto-shred local data."
+  },
+  "codes": [
+    { "code": "malformed_request", "http": 400, "class": "permanent", "description": "The request body or parameters are not well-formed." },
+    { "code": "template_unknown", "http": 400, "class": "permanent", "description": "The referenced form template code/version does not exist." },
+    { "code": "invalid_credentials", "http": 401, "class": "auth", "description": "Username or password is incorrect." },
+    { "code": "token_invalid", "http": 401, "class": "auth", "description": "The access token is missing, malformed or not valid." },
+    { "code": "token_expired", "http": 401, "class": "auth", "description": "The access or refresh token has expired." },
+    { "code": "device_revoked", "http": 401, "class": "revoked", "description": "The device this session is bound to has been revoked." },
+    { "code": "account_locked", "http": 403, "class": "auth", "description": "Too many failed sign-in attempts; the account is temporarily locked." },
+    { "code": "permission_denied", "http": 403, "class": "permanent", "description": "The authenticated user may not perform this action." },
+    { "code": "facility_forbidden", "http": 403, "class": "permanent", "description": "The facility is outside the user's assigned scope." },
+    { "code": "not_found", "http": 404, "class": "permanent", "description": "The resource does not exist or is outside the caller's scope." },
+    { "code": "method_not_allowed", "http": 405, "class": "permanent", "description": "The HTTP method is not supported on this endpoint." },
+    { "code": "not_acceptable", "http": 406, "class": "permanent", "description": "The requested response media type is not available." },
+    { "code": "conflict_version", "http": 409, "class": "conflict", "description": "The submission changed on the server since the version this edit was based on." },
+    { "code": "client_uuid_foreign", "http": 409, "class": "permanent", "description": "The client_uuid belongs to a submission outside the caller's ownership." },
+    { "code": "payload_too_large", "http": 413, "class": "permanent", "description": "The request body (after decompression) exceeds the allowed size." },
+    { "code": "unsupported_media_type", "http": 415, "class": "permanent", "description": "Content-Type or Content-Encoding is not supported." },
+    { "code": "validation_failed", "http": 422, "class": "permanent", "description": "The payload failed template validation; well-formed submissions are stored as 'rejected'." },
+    { "code": "template_retired", "http": 422, "class": "permanent", "description": "The template version no longer accepts submissions." },
+    { "code": "rate_limited", "http": 429, "class": "transient", "description": "Too many requests; honour Retry-After." },
+    { "code": "server_error", "http": 500, "class": "transient", "description": "Unexpected server error." },
+    { "code": "unavailable", "http": 503, "class": "transient", "description": "The service or a dependency is temporarily unavailable; honour Retry-After." }
+  ]
+}

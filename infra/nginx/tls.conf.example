@@ -1,0 +1,31 @@
+# Production TLS front (reference only — not used by the demo compose stack).
+# Terminate TLS here (or at the load balancer) and forward to the web container.
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name fieldsync.example.org;
+
+  ssl_certificate     /etc/ssl/fieldsync/fullchain.pem;
+  ssl_certificate_key /etc/ssl/fieldsync/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+  ssl_session_cache shared:fs_tls:10m;
+  ssl_session_timeout 1d;
+  ssl_stapling on;
+  ssl_stapling_verify on;
+
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+  location / {
+    proxy_pass http://web:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+  }
+}
+
+server {
+  listen 80;
+  server_name fieldsync.example.org;
+  return 301 https://$host$request_uri;
+}

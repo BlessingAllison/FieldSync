@@ -1,0 +1,3109 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FieldSync API",
+        "version": "1.0.0",
+        "description": "Offline-first health data collection API (demonstration project — no real patient data). Every response uses the envelope `{success, data, error, meta}`; error codes are listed in `contracts/error-codes.json`."
+    },
+    "paths": {
+        "/api/v1/auth/login": {
+            "post": {
+                "operationId": "auth_login",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "operationId": "auth_logout",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SignedOutEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/me": {
+            "get": {
+                "operationId": "auth_me",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MeEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "operationId": "auth_refresh",
+                "description": "Rotates the refresh cookie. Requires `X-Requested-With: fieldsync`.",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RefreshEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/counties": {
+            "get": {
+                "operationId": "counties_list",
+                "tags": [
+                    "facilities"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CountyListEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/demo/supervisor-edit/{client_uuid}": {
+            "post": {
+                "operationId": "demo_supervisor_edit",
+                "description": "Demo mode only: a county supervisor corrects one numeric value (creates a conflict).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "client_uuid",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "demo"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SupervisorEditEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/devices": {
+            "get": {
+                "operationId": "devices_list",
+                "tags": [
+                    "devices"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeviceListEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/devices/{device_id}/revoke": {
+            "post": {
+                "operationId": "devices_revoke",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "device_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RevokeRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeviceEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/facilities": {
+            "get": {
+                "operationId": "facilities_list",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "county",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "County code (admins/supervisors)"
+                    }
+                ],
+                "tags": [
+                    "facilities"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FacilityListEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates": {
+            "get": {
+                "operationId": "form_templates_list",
+                "description": "Every version that currently accepts submissions (published + grace window).",
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateListEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "form_templates_create",
+                "tags": [
+                    "templates"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TemplateDefinitionRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates/{code}/versions/{version}": {
+            "get": {
+                "operationId": "form_templates_version",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "code",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "version",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates/{template_id}": {
+            "patch": {
+                "operationId": "form_templates_update",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "template_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "templates"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedTemplateDefinitionRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates/{template_id}/publish": {
+            "post": {
+                "operationId": "form_templates_publish",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "template_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/form-templates/{template_id}/retire": {
+            "post": {
+                "operationId": "form_templates_retire",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "template_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "templates"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FormTemplateEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/health/live": {
+            "get": {
+                "operationId": "health_live",
+                "description": "Process is up. Cheap enough for the PWA's circuit-breaker probe (``HEAD``).",
+                "tags": [
+                    "health"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthLiveEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/health/ready": {
+            "get": {
+                "operationId": "health_ready",
+                "description": "Database reachable and every migration applied. Used by orchestration, not by the PWA.",
+                "tags": [
+                    "health"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthReadyEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": "Not ready"
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions": {
+            "get": {
+                "operationId": "submissions_list",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "facility",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "template",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "template code"
+                    }
+                ],
+                "tags": [
+                    "submissions"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionListEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "submissions_upsert",
+                "description": "Idempotent upsert keyed by `client_uuid`. Retrying the same content returns `replayed`; a stale `base_version` returns 409 with the server copy in `data`.",
+                "tags": [
+                    "submissions"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SubmissionItemRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpsertSuccessEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpsertCreatedEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": "conflict_version"
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": "validation_failed (stored)"
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/{submission_id}": {
+            "get": {
+                "operationId": "submissions_detail",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "submission_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "submissions"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionDetailEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/{submission_id}/retry": {
+            "post": {
+                "operationId": "submissions_retry",
+                "description": "Server-side re-validation of a quarantined (`rejected`) submission.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "submission_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "submissions"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RetryRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionDetailEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/{submission_id}/review": {
+            "post": {
+                "operationId": "submissions_review",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "submission_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "submissions"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReviewRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionDetailEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/{submission_id}/versions": {
+            "get": {
+                "operationId": "submissions_versions",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "submission_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "submissions"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionVersionsEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/batch": {
+            "post": {
+                "operationId": "submissions_batch",
+                "description": "Up to 25 independent upserts. Not atomic: each item is its own unit of work and has its own `outcome`/`http_status`. Optionally piggy-backs the device's queue state.",
+                "tags": [
+                    "submissions"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BatchRequestRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BatchResponseEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/by-client/{client_uuid}": {
+            "get": {
+                "operationId": "submissions_by_client_uuid",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "client_uuid",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "submissions"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionDetailEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/sync-status": {
+            "get": {
+                "operationId": "submissions_sync_status",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "county",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "County code filter"
+                    }
+                ],
+                "tags": [
+                    "sync"
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SyncStatusEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/sync/heartbeat": {
+            "post": {
+                "operationId": "sync_heartbeat",
+                "description": "Device queue state when there is nothing to upload (ADD §12.7).",
+                "tags": [
+                    "sync"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceStateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HeartbeatEnvelope"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BatchRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {},
+                        "maxItems": 25,
+                        "minItems": 1
+                    },
+                    "device_state": {
+                        "$ref": "#/components/schemas/DeviceStateRequest"
+                    }
+                },
+                "required": [
+                    "items"
+                ]
+            },
+            "BatchResponse": {
+                "type": "object",
+                "properties": {
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UpsertResult"
+                        }
+                    }
+                },
+                "required": [
+                    "results"
+                ]
+            },
+            "BatchResponseEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/BatchResponse"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "CodeEnum": {
+                "enum": [
+                    "malformed_request",
+                    "template_unknown",
+                    "invalid_credentials",
+                    "token_invalid",
+                    "token_expired",
+                    "device_revoked",
+                    "account_locked",
+                    "permission_denied",
+                    "facility_forbidden",
+                    "not_found",
+                    "method_not_allowed",
+                    "not_acceptable",
+                    "conflict_version",
+                    "client_uuid_foreign",
+                    "payload_too_large",
+                    "unsupported_media_type",
+                    "validation_failed",
+                    "template_retired",
+                    "rate_limited",
+                    "server_error",
+                    "unavailable"
+                ],
+                "type": "string",
+                "description": "* `malformed_request` - malformed_request\n* `template_unknown` - template_unknown\n* `invalid_credentials` - invalid_credentials\n* `token_invalid` - token_invalid\n* `token_expired` - token_expired\n* `device_revoked` - device_revoked\n* `account_locked` - account_locked\n* `permission_denied` - permission_denied\n* `facility_forbidden` - facility_forbidden\n* `not_found` - not_found\n* `method_not_allowed` - method_not_allowed\n* `not_acceptable` - not_acceptable\n* `conflict_version` - conflict_version\n* `client_uuid_foreign` - client_uuid_foreign\n* `payload_too_large` - payload_too_large\n* `unsupported_media_type` - unsupported_media_type\n* `validation_failed` - validation_failed\n* `template_retired` - template_retired\n* `rate_limited` - rate_limited\n* `server_error` - server_error\n* `unavailable` - unavailable"
+            },
+            "County": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "code",
+                    "id",
+                    "name"
+                ]
+            },
+            "CountyListEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/County"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "CountyRef": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "code",
+                    "id",
+                    "name"
+                ]
+            },
+            "Device": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "user": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DeviceUser"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "label": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "app_version": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "registered_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "last_seen_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "revoked_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "revoke_reason": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "app_version",
+                    "id",
+                    "label",
+                    "last_seen_at",
+                    "registered_at",
+                    "revoke_reason",
+                    "revoked_at",
+                    "user"
+                ]
+            },
+            "DeviceEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Device"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "DeviceFacilityStateRequest": {
+                "type": "object",
+                "properties": {
+                    "facility_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "pending": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "failed": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "conflicts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "stuck": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0
+                    },
+                    "oldest_pending_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "last_attempt_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "last_success_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "facility_id"
+                ]
+            },
+            "DeviceInfoRequest": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                    },
+                    "app_version": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 32
+                    }
+                },
+                "required": [
+                    "app_version",
+                    "id",
+                    "label"
+                ]
+            },
+            "DeviceListEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Device"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "DeviceStateRequest": {
+                "type": "object",
+                "properties": {
+                    "facilities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DeviceFacilityStateRequest"
+                        }
+                    }
+                },
+                "required": [
+                    "facilities"
+                ]
+            },
+            "DeviceUser": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "username": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "role": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/RoleEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "display_name",
+                    "id",
+                    "role",
+                    "username"
+                ]
+            },
+            "ErrorBody": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "$ref": "#/components/schemas/CodeEnum"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "details": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                },
+                "required": [
+                    "code",
+                    "message"
+                ]
+            },
+            "ErrorEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "data": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorBody"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "error",
+                    "meta"
+                ]
+            },
+            "Facility": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "county": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/County"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "district": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "facility_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/FacilityTypeEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "code",
+                    "county",
+                    "district",
+                    "facility_type",
+                    "id",
+                    "is_active",
+                    "name"
+                ]
+            },
+            "FacilityHealth": {
+                "type": "object",
+                "properties": {
+                    "facility_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "county": {
+                        "type": "string"
+                    },
+                    "health": {
+                        "$ref": "#/components/schemas/HealthEnum"
+                    },
+                    "reasons": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "last_success_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "pending_on_devices": {
+                        "type": "integer"
+                    },
+                    "oldest_pending_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "failed": {
+                        "type": "integer"
+                    },
+                    "conflicts": {
+                        "type": "integer"
+                    },
+                    "stuck": {
+                        "type": "integer"
+                    },
+                    "rejected_open": {
+                        "type": "integer"
+                    },
+                    "devices_active": {
+                        "type": "integer"
+                    },
+                    "devices_silent_72h": {
+                        "type": "integer"
+                    },
+                    "submissions_24h": {
+                        "type": "integer"
+                    },
+                    "first_attempt_success_7d": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "format": "double"
+                    },
+                    "acks_7d": {
+                        "type": "integer"
+                    },
+                    "first_attempt_7d": {
+                        "type": "integer"
+                    },
+                    "mean_attempts_7d": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "acks_7d",
+                    "code",
+                    "conflicts",
+                    "county",
+                    "devices_active",
+                    "devices_silent_72h",
+                    "facility_id",
+                    "failed",
+                    "first_attempt_7d",
+                    "first_attempt_success_7d",
+                    "health",
+                    "last_success_at",
+                    "mean_attempts_7d",
+                    "name",
+                    "oldest_pending_at",
+                    "pending_on_devices",
+                    "reasons",
+                    "rejected_open",
+                    "stuck",
+                    "submissions_24h"
+                ]
+            },
+            "FacilityListEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Facility"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "FacilityTypeEnum": {
+                "enum": [
+                    "hospital",
+                    "health_center",
+                    "clinic",
+                    "community_post"
+                ],
+                "type": "string",
+                "description": "* `hospital` - Hospital\n* `health_center` - Health centre\n* `clinic` - Clinic\n* `community_post` - Community health post"
+            },
+            "FormTemplate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "version": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "subject": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SubjectEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "title": {
+                        "readOnly": true
+                    },
+                    "description": {
+                        "readOnly": true
+                    },
+                    "definition": {
+                        "readOnly": true
+                    },
+                    "definition_hash": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TemplateStatusEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "accept_until": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "published_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "accept_until",
+                    "code",
+                    "definition",
+                    "definition_hash",
+                    "description",
+                    "id",
+                    "published_at",
+                    "status",
+                    "subject",
+                    "title",
+                    "version"
+                ]
+            },
+            "FormTemplateEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/FormTemplate"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "FormTemplateListEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FormTemplate"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "HealthCheckStatusEnum": {
+                "enum": [
+                    "ok"
+                ],
+                "type": "string",
+                "description": "* `ok` - ok"
+            },
+            "HealthEnum": {
+                "enum": [
+                    "healthy",
+                    "degraded",
+                    "stale",
+                    "unknown"
+                ],
+                "type": "string",
+                "description": "* `healthy` - healthy\n* `degraded` - degraded\n* `stale` - stale\n* `unknown` - unknown"
+            },
+            "HealthLiveEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Live"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "HealthReadyEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Ready"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "HeartbeatEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/HeartbeatResult"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "HeartbeatResult": {
+                "type": "object",
+                "properties": {
+                    "facilities_applied": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "facilities_applied"
+                ]
+            },
+            "Live": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/HealthCheckStatusEnum"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "LoginDevice": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "escrow_secret": {
+                        "type": "string",
+                        "description": "base64url, 32 bytes; never persist on device"
+                    }
+                },
+                "required": [
+                    "escrow_secret",
+                    "id"
+                ]
+            },
+            "LoginEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/LoginResponse"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "LoginRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "device": {
+                        "$ref": "#/components/schemas/DeviceInfoRequest"
+                    }
+                },
+                "required": [
+                    "device",
+                    "password",
+                    "username"
+                ]
+            },
+            "LoginResponse": {
+                "type": "object",
+                "properties": {
+                    "access": {
+                        "type": "string"
+                    },
+                    "access_expires_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "device": {
+                        "$ref": "#/components/schemas/LoginDevice"
+                    }
+                },
+                "required": [
+                    "access",
+                    "access_expires_at",
+                    "device",
+                    "user"
+                ]
+            },
+            "MeEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/UserProfile"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "Meta": {
+                "type": "object",
+                "properties": {
+                    "request_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "api_version": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "api_version",
+                    "request_id"
+                ]
+            },
+            "OpEnum": {
+                "enum": [
+                    "create",
+                    "update"
+                ],
+                "type": "string",
+                "description": "* `create` - create\n* `update` - update"
+            },
+            "PatchedTemplateDefinitionRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "definition": {
+                        "description": "A definition valid against contracts/form-template.schema.json"
+                    }
+                }
+            },
+            "Ready": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/HealthCheckStatusEnum"
+                    },
+                    "checks": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "enum": [
+                                "ok"
+                            ],
+                            "type": "string",
+                            "description": "* `ok` - ok"
+                        }
+                    }
+                },
+                "required": [
+                    "checks",
+                    "status"
+                ]
+            },
+            "RefreshEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/RefreshResponse"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "RefreshResponse": {
+                "type": "object",
+                "properties": {
+                    "access": {
+                        "type": "string"
+                    },
+                    "access_expires_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserProfile"
+                    }
+                },
+                "required": [
+                    "access",
+                    "access_expires_at",
+                    "user"
+                ]
+            },
+            "ResolutionEnum": {
+                "enum": [
+                    "none",
+                    "override",
+                    "merge"
+                ],
+                "type": "string",
+                "description": "* `none` - none\n* `override` - override\n* `merge` - merge"
+            },
+            "RetryRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "template_version": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                }
+            },
+            "ReviewRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/ReviewRequestStatusEnum"
+                    },
+                    "note": {
+                        "type": "string",
+                        "default": "",
+                        "maxLength": 500
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "oneOf": [
+                                {},
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "base_version": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "ReviewRequestStatusEnum": {
+                "enum": [
+                    "reviewed",
+                    "flagged"
+                ],
+                "type": "string",
+                "description": "* `reviewed` - reviewed\n* `flagged` - flagged"
+            },
+            "RevokeRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "reason"
+                ]
+            },
+            "RoleEnum": {
+                "enum": [
+                    "chw",
+                    "supervisor",
+                    "admin"
+                ],
+                "type": "string",
+                "description": "* `chw` - Community health worker\n* `supervisor` - County supervisor\n* `admin` - National administrator"
+            },
+            "ServerCopy": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "type": "integer"
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/SubmissionStatusEnum"
+                    },
+                    "changed_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "changed_by_role": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "changed_at",
+                    "changed_by_role",
+                    "payload",
+                    "status",
+                    "version"
+                ]
+            },
+            "SignedOut": {
+                "type": "object",
+                "properties": {
+                    "signed_out": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "signed_out"
+                ]
+            },
+            "SignedOutEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/SignedOut"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "SourceEnum": {
+                "enum": [
+                    "device",
+                    "review",
+                    "override",
+                    "revalidate"
+                ],
+                "type": "string",
+                "description": "* `device` - Device\n* `review` - Supervisor review\n* `override` - Conflict override/merge\n* `revalidate` - Server re-validation"
+            },
+            "SubjectEnum": {
+                "enum": [
+                    "patient",
+                    "facility"
+                ],
+                "type": "string",
+                "description": "* `patient` - Patient\n* `facility` - Facility"
+            },
+            "Submission": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "client_uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "template": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TemplateRefResponse"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "facility_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "submitted_by_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SubmissionStatusEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "version": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "validation_errors": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "captured_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "received_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "reviewed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "review_note": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "captured_at",
+                    "client_uuid",
+                    "facility_id",
+                    "id",
+                    "received_at",
+                    "review_note",
+                    "reviewed_at",
+                    "status",
+                    "submitted_by_id",
+                    "template",
+                    "updated_at",
+                    "validation_errors",
+                    "version"
+                ]
+            },
+            "SubmissionDetail": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "client_uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "template": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TemplateRefResponse"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "facility_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "submitted_by_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SubmissionStatusEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "version": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "validation_errors": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "captured_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "received_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "reviewed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "review_note": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "payload": {
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "captured_at",
+                    "client_uuid",
+                    "facility_id",
+                    "id",
+                    "payload",
+                    "received_at",
+                    "review_note",
+                    "reviewed_at",
+                    "status",
+                    "submitted_by_id",
+                    "template",
+                    "updated_at",
+                    "validation_errors",
+                    "version"
+                ]
+            },
+            "SubmissionDetailEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/SubmissionDetail"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "SubmissionItemRequest": {
+                "type": "object",
+                "properties": {
+                    "client_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "op": {
+                        "$ref": "#/components/schemas/OpEnum"
+                    },
+                    "template": {
+                        "$ref": "#/components/schemas/TemplateRefRequest"
+                    },
+                    "facility_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "captured_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "base_version": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1
+                    },
+                    "resolution": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/ResolutionEnum"
+                            }
+                        ],
+                        "default": "none"
+                    },
+                    "attempt": {
+                        "type": "integer",
+                        "maximum": 10000,
+                        "minimum": 1,
+                        "default": 1
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "oneOf": [
+                                {},
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "captured_at",
+                    "client_uuid",
+                    "facility_id",
+                    "op",
+                    "payload",
+                    "template"
+                ]
+            },
+            "SubmissionListEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Submission"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "SubmissionStatusEnum": {
+                "enum": [
+                    "accepted",
+                    "rejected",
+                    "reviewed",
+                    "flagged"
+                ],
+                "type": "string",
+                "description": "* `accepted` - Accepted\n* `rejected` - Rejected (quarantined)\n* `reviewed` - Reviewed\n* `flagged` - Flagged"
+            },
+            "SubmissionVersion": {
+                "type": "object",
+                "properties": {
+                    "version": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "payload": {},
+                    "status": {
+                        "$ref": "#/components/schemas/SubmissionStatusEnum"
+                    },
+                    "source": {
+                        "$ref": "#/components/schemas/SourceEnum"
+                    },
+                    "changed_by_role": {
+                        "type": "string"
+                    },
+                    "device_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "changed_by_role",
+                    "created_at",
+                    "device_id",
+                    "payload",
+                    "source",
+                    "status",
+                    "version"
+                ]
+            },
+            "SubmissionVersionsEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SubmissionVersion"
+                        }
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "SupervisorEdit": {
+                "type": "object",
+                "properties": {
+                    "client_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "field": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "client_uuid",
+                    "field",
+                    "version"
+                ]
+            },
+            "SupervisorEditEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/SupervisorEdit"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "SyncStatus": {
+                "type": "object",
+                "properties": {
+                    "generated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "scope": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "thresholds": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "summary": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "facilities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FacilityHealth"
+                        }
+                    }
+                },
+                "required": [
+                    "facilities",
+                    "generated_at",
+                    "scope",
+                    "summary",
+                    "thresholds"
+                ]
+            },
+            "SyncStatusEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/SyncStatus"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "TemplateDefinitionRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "definition": {
+                        "description": "A definition valid against contracts/form-template.schema.json"
+                    }
+                },
+                "required": [
+                    "definition"
+                ]
+            },
+            "TemplateRefRequest": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "code",
+                    "version"
+                ]
+            },
+            "TemplateRefResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "version": {
+                        "type": "integer",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "code",
+                    "version"
+                ]
+            },
+            "TemplateStatusEnum": {
+                "enum": [
+                    "draft",
+                    "published",
+                    "superseded",
+                    "retired"
+                ],
+                "type": "string",
+                "description": "* `draft` - Draft\n* `published` - Published\n* `superseded` - Superseded\n* `retired` - Retired"
+            },
+            "UpsertCreatedEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/UpsertSuccess"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "UpsertResult": {
+                "type": "object",
+                "properties": {
+                    "client_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "outcome": {
+                        "$ref": "#/components/schemas/UpsertResultOutcomeEnum"
+                    },
+                    "http_status": {
+                        "type": "integer"
+                    },
+                    "submission": {
+                        "$ref": "#/components/schemas/Submission"
+                    },
+                    "error": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "server_copy": {
+                        "$ref": "#/components/schemas/ServerCopy"
+                    }
+                },
+                "required": [
+                    "client_uuid",
+                    "http_status",
+                    "outcome"
+                ]
+            },
+            "UpsertResultOutcomeEnum": {
+                "enum": [
+                    "created",
+                    "updated",
+                    "replayed",
+                    "conflict",
+                    "rejected",
+                    "forbidden",
+                    "invalid"
+                ],
+                "type": "string",
+                "description": "* `created` - created\n* `updated` - updated\n* `replayed` - replayed\n* `conflict` - conflict\n* `rejected` - rejected\n* `forbidden` - forbidden\n* `invalid` - invalid"
+            },
+            "UpsertSuccess": {
+                "type": "object",
+                "properties": {
+                    "outcome": {
+                        "$ref": "#/components/schemas/UpsertSuccessOutcomeEnum"
+                    },
+                    "submission": {
+                        "$ref": "#/components/schemas/Submission"
+                    }
+                },
+                "required": [
+                    "outcome",
+                    "submission"
+                ]
+            },
+            "UpsertSuccessEnvelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/UpsertSuccess"
+                    },
+                    "error": {
+                        "oneOf": [
+                            {},
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/Meta"
+                    }
+                },
+                "required": [
+                    "data",
+                    "meta"
+                ]
+            },
+            "UpsertSuccessOutcomeEnum": {
+                "enum": [
+                    "created",
+                    "updated",
+                    "replayed"
+                ],
+                "type": "string",
+                "description": "* `created` - created\n* `updated` - updated\n* `replayed` - replayed"
+            },
+            "UserProfile": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "display_name": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/RoleEnum"
+                    },
+                    "county": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CountyRef"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "facility_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    "preferred_locale": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "county",
+                    "display_name",
+                    "facility_ids",
+                    "id",
+                    "preferred_locale",
+                    "role",
+                    "username"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Same origin as the PWA"
+        }
+    ]
+}

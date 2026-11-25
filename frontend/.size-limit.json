@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Critical JS — initial route (gzip). Target 170 KB, hard limit 200 KB (ADD §4)",
+    "path": "dist/assets/index-*.js",
+    "gzip": true,
+    "limit": "200 KB"
+  },
+  {
+    "name": "Critical CSS (gzip)",
+    "path": "dist/assets/index-*.css",
+    "gzip": true,
+    "limit": "25 KB"
+  },
+  {
+    "name": "Service worker (gzip)",
+    "path": "dist/sw.js",
+    "gzip": true,
+    "limit": "30 KB"
+  }
+]

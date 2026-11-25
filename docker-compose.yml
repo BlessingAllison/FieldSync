@@ -1,0 +1,73 @@
+# FieldSync demo stack: PostgreSQL + Django API + nginx serving the PWA on one origin.
+#   make bootstrap   # once: creates .env with generated secrets
+#   make up          # http://localhost:${FIELDSYNC_WEB_PORT:-8090}
+name: fieldsync
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?run make bootstrap}
+      POSTGRES_USER: ${POSTGRES_USER:?run make bootstrap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run make bootstrap}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${FIELDSYNC_DB_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      # Repo root: the image also needs contracts/ (template meta-schema, examples for seeding).
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.${FIELDSYNC_ENV:-demo}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      RUN_MIGRATIONS: "1"
+      # Production default 10/min per IP; the E2E run raises it (many sign-ins from one IP).
+      THROTTLE_LOGIN: ${THROTTLE_LOGIN:-10/min}
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    expose:
+      - "8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    ports:
+      - "127.0.0.1:${FIELDSYNC_WEB_PORT:-8090}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

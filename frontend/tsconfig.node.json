@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "tailwind.config.ts",
+    "pwa-assets.config.ts",
+    "e2e/**/*.ts"
+  ],
+  "$comment": "DOM lib is needed for Playwright callbacks that execute in the browser (page.waitForFunction)."
+}

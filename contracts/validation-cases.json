@@ -1,0 +1,931 @@
+{
+  "$comment": "Conformance fixtures for the form validation DSL. The TypeScript (frontend/src/core/validation) and Python (backend) engines must both produce exactly these results. Semantics are specified in contracts/README.md.",
+  "version": 1,
+  "now": "2026-11-19T12:00:00Z",
+  "templates": {
+    "basic": {
+      "code": "conformance-basic",
+      "version": 1,
+      "subject": "patient",
+      "title": {
+        "en": "Conformance template"
+      },
+      "steps": [
+        {
+          "id": "main",
+          "title": {
+            "en": "Main"
+          },
+          "fields": [
+            {
+              "id": "name",
+              "type": "text",
+              "required": true,
+              "label": {
+                "en": "Name"
+              },
+              "rules": {
+                "maxLength": 10
+              }
+            },
+            {
+              "id": "code",
+              "type": "text",
+              "label": {
+                "en": "Code"
+              },
+              "rules": {
+                "minLength": 5,
+                "pattern": "^[A-Z]{2}[0-9]{3}$"
+              }
+            },
+            {
+              "id": "age",
+              "type": "integer",
+              "required": true,
+              "label": {
+                "en": "Age"
+              },
+              "rules": {
+                "min": 2,
+                "max": 59
+              }
+            },
+            {
+              "id": "weight",
+              "type": "decimal",
+              "label": {
+                "en": "Weight"
+              },
+              "rules": {
+                "min": 0.5,
+                "max": 50
+              }
+            },
+            {
+              "id": "sex",
+              "type": "select",
+              "label": {
+                "en": "Sex"
+              },
+              "options": [
+                {
+                  "value": "f"
+                },
+                {
+                  "value": "m"
+                }
+              ]
+            },
+            {
+              "id": "fever",
+              "type": "boolean",
+              "required": true,
+              "label": {
+                "en": "Fever"
+              }
+            },
+            {
+              "id": "rdt",
+              "type": "select",
+              "required": true,
+              "label": {
+                "en": "RDT"
+              },
+              "showIf": {
+                "field": "fever",
+                "equals": true
+              },
+              "options": [
+                {
+                  "value": "positive"
+                },
+                {
+                  "value": "negative"
+                }
+              ]
+            },
+            {
+              "id": "signs",
+              "type": "multiselect",
+              "label": {
+                "en": "Signs"
+              },
+              "options": [
+                {
+                  "value": "a"
+                },
+                {
+                  "value": "b"
+                },
+                {
+                  "value": "c"
+                }
+              ],
+              "rules": {
+                "maxSelected": 2
+              }
+            },
+            {
+              "id": "referred",
+              "type": "boolean",
+              "label": {
+                "en": "Referred"
+              }
+            },
+            {
+              "id": "visit",
+              "type": "date",
+              "label": {
+                "en": "Visit"
+              },
+              "rules": {
+                "pastOnly": true
+              }
+            },
+            {
+              "id": "followup",
+              "type": "date",
+              "label": {
+                "en": "Follow-up"
+              },
+              "rules": {
+                "futureOnly": true
+              }
+            },
+            {
+              "id": "phone",
+              "type": "phone",
+              "label": {
+                "en": "Phone"
+              }
+            },
+            {
+              "id": "district",
+              "type": "select",
+              "label": {
+                "en": "District"
+              },
+              "showIf": {
+                "field": "sex",
+                "in": [
+                  "f",
+                  "m"
+                ]
+              },
+              "options": [
+                {
+                  "value": "d1"
+                },
+                {
+                  "value": "d2"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "crossRules": [
+        {
+          "id": "refer_if_signs",
+          "when": {
+            "field": "signs",
+            "notEmpty": true
+          },
+          "require": "referred",
+          "message": {
+            "en": "Signs present — record referral."
+          }
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "valid-minimal",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false
+        }
+      }
+    },
+    {
+      "id": "required-missing",
+      "template": "basic",
+      "input": {},
+      "expect": {
+        "valid": false,
+        "errors": {
+          "name": [
+            "required"
+          ],
+          "age": [
+            "required"
+          ],
+          "fever": [
+            "required"
+          ]
+        }
+      }
+    },
+    {
+      "id": "null-is-empty",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": null,
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "age": [
+            "required"
+          ]
+        }
+      }
+    },
+    {
+      "id": "text-trimmed",
+      "template": "basic",
+      "input": {
+        "name": "  Ama  ",
+        "age": 24,
+        "fever": false
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false
+        }
+      }
+    },
+    {
+      "id": "text-blank-is-empty",
+      "template": "basic",
+      "input": {
+        "name": "   ",
+        "age": 24,
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "name": [
+            "required"
+          ]
+        }
+      }
+    },
+    {
+      "id": "text-nfc-normalised",
+      "template": "basic",
+      "input": {
+        "name": "Amé",
+        "age": 24,
+        "fever": false
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Amé",
+          "age": 24,
+          "fever": false
+        }
+      }
+    },
+    {
+      "id": "text-length-counts-code-points",
+      "template": "basic",
+      "input": {
+        "name": "😀😀😀😀😀😀😀😀😀😀",
+        "age": 24,
+        "fever": false
+      },
+      "expect": {
+        "valid": true,
+        "errors": {}
+      },
+      "note": "10 code points (20 UTF-16 units) must pass maxLength 10; JS must count [...s].length"
+    },
+    {
+      "id": "text-maxlength",
+      "template": "basic",
+      "input": {
+        "name": "Abcdefghijk",
+        "age": 24,
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "name": [
+            "maxLength"
+          ]
+        }
+      }
+    },
+    {
+      "id": "rule-order-stable",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "code": "a"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "code": [
+            "minLength",
+            "pattern"
+          ]
+        }
+      },
+      "note": "rule errors are reported in canonical order: min,max,minLength,maxLength,pattern,minSelected,maxSelected,pastOnly,futureOnly"
+    },
+    {
+      "id": "pattern-ok",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "code": "AB123"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {}
+      }
+    },
+    {
+      "id": "integer-no-coercion",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": "24",
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "age": [
+            "type"
+          ]
+        }
+      }
+    },
+    {
+      "id": "integer-rejects-fraction",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24.5,
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "age": [
+            "type"
+          ]
+        }
+      }
+    },
+    {
+      "id": "integer-min",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 1,
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "age": [
+            "min"
+          ]
+        }
+      }
+    },
+    {
+      "id": "integer-max",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 60,
+        "fever": false
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "age": [
+            "max"
+          ]
+        }
+      }
+    },
+    {
+      "id": "integer-accepts-integral-float",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24.0,
+        "fever": false
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false
+        }
+      },
+      "note": "JSON 24.0 is the integer 24 in both engines"
+    },
+    {
+      "id": "decimal-ok",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "weight": 12.5
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false,
+          "weight": 12.5
+        }
+      }
+    },
+    {
+      "id": "decimal-min",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "weight": 0.1
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "weight": [
+            "min"
+          ]
+        }
+      }
+    },
+    {
+      "id": "boolean-type",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": "yes"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "fever": [
+            "type"
+          ]
+        }
+      }
+    },
+    {
+      "id": "select-unknown-option",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "sex": "x"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "sex": [
+            "option"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hidden-field-stripped",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "rdt": "positive"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false
+        }
+      },
+      "note": "rdt is hidden (fever=false): value removed, rules not evaluated"
+    },
+    {
+      "id": "visible-required",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": true
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "rdt": [
+            "required"
+          ]
+        }
+      }
+    },
+    {
+      "id": "visible-ok",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": true,
+        "rdt": "negative"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": true,
+          "rdt": "negative"
+        }
+      }
+    },
+    {
+      "id": "showif-in",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "sex": "f",
+        "district": "d9"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "district": [
+            "option"
+          ]
+        }
+      }
+    },
+    {
+      "id": "showif-in-hidden",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "district": "d1"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false
+        }
+      }
+    },
+    {
+      "id": "multiselect-max",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "signs": [
+          "a",
+          "b",
+          "c"
+        ],
+        "referred": true
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "signs": [
+            "maxSelected"
+          ]
+        }
+      }
+    },
+    {
+      "id": "multiselect-duplicates",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "signs": [
+          "a",
+          "a"
+        ],
+        "referred": true
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "signs": [
+            "type"
+          ]
+        }
+      }
+    },
+    {
+      "id": "multiselect-unknown-option",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "signs": [
+          "z"
+        ],
+        "referred": true
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "signs": [
+            "option"
+          ]
+        }
+      }
+    },
+    {
+      "id": "multiselect-empty-omitted",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "signs": []
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false
+        }
+      }
+    },
+    {
+      "id": "cross-rule-violated",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "signs": [
+          "a"
+        ]
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "referred": [
+            "rule:refer_if_signs"
+          ]
+        }
+      }
+    },
+    {
+      "id": "cross-rule-false-is-an-answer",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "signs": [
+          "a"
+        ],
+        "referred": false
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false,
+          "signs": [
+            "a"
+          ],
+          "referred": false
+        }
+      }
+    },
+    {
+      "id": "date-format",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "visit": "19/11/2026"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "visit": [
+            "type"
+          ]
+        }
+      }
+    },
+    {
+      "id": "date-invalid-calendar",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "visit": "2026-02-30"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "visit": [
+            "type"
+          ]
+        }
+      }
+    },
+    {
+      "id": "date-past-only-today-ok",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "visit": "2026-11-19"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false,
+          "visit": "2026-11-19"
+        }
+      }
+    },
+    {
+      "id": "date-past-only",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "visit": "2026-11-20"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "visit": [
+            "pastOnly"
+          ]
+        }
+      }
+    },
+    {
+      "id": "date-future-only-today-ok",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "followup": "2026-11-19"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false,
+          "followup": "2026-11-19"
+        }
+      }
+    },
+    {
+      "id": "date-future-only",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "followup": "2026-11-18"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "followup": [
+            "futureOnly"
+          ]
+        }
+      }
+    },
+    {
+      "id": "phone-normalised",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "phone": "+231 77 123-4567"
+      },
+      "expect": {
+        "valid": true,
+        "errors": {},
+        "normalized": {
+          "name": "Ama",
+          "age": 24,
+          "fever": false,
+          "phone": "+231771234567"
+        }
+      }
+    },
+    {
+      "id": "phone-invalid",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "phone": "call me"
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "phone": [
+            "pattern"
+          ]
+        }
+      }
+    },
+    {
+      "id": "unknown-field",
+      "template": "basic",
+      "input": {
+        "name": "Ama",
+        "age": 24,
+        "fever": false,
+        "foo": 1
+      },
+      "expect": {
+        "valid": false,
+        "errors": {
+          "foo": [
+            "unknown"
+          ]
+        }
+      }
+    }
+  ]
+}

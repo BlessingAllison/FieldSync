@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fieldsync.invalid/contracts/form-template.schema.json",
+  "title": "FieldSync form template definition",
+  "description": "Meta-schema for versioned form templates (ADD §13). Validated server-side on create/publish. Semantic rules that JSON Schema cannot express (unique ids, showIf referencing an earlier field, rules applicable to the field type) are enforced by the template service and covered by contracts/validation-cases.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code",
+    "version",
+    "subject",
+    "title",
+    "steps"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}[a-z0-9]$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "subject": {
+      "enum": [
+        "patient",
+        "facility"
+      ]
+    },
+    "title": {
+      "$ref": "#/$defs/i18n"
+    },
+    "description": {
+      "$ref": "#/$defs/i18n"
+    },
+    "retain_after_sync_days": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 30
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/step"
+      }
+    },
+    "crossRules": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/crossRule"
+      }
+    }
+  },
+  "$defs": {
+    "i18n": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "en"
+      ],
+      "properties": {
+        "en": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "kpe": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400
+        }
+      }
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,47}$"
+    },
+    "scalar": {
+      "type": [
+        "string",
+        "number",
+        "boolean"
+      ]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "$ref": "#/$defs/i18n"
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 40,
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,48}$"
+        },
+        "label": {
+          "$ref": "#/$defs/i18n"
+        }
+      }
+    },
+    "safePattern": {
+      "description": "Anchored, short, and without the constructs that enable catastrophic backtracking or engine divergence between JS and Python: no backreferences, no (?...) groups, no quantified groups.",
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^\\^.*\\$$",
+      "not": {
+        "pattern": "\\(\\?|\\\\[1-9]|\\)[*+?{]"
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000
+        },
+        "pattern": {
+          "$ref": "#/$defs/safePattern"
+        },
+        "minSelected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxSelected": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pastOnly": {
+          "const": true
+        },
+        "futureOnly": {
+          "const": true
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field"
+      ],
+      "minProperties": 2,
+      "maxProperties": 2,
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/id"
+        },
+        "equals": {
+          "$ref": "#/$defs/scalar"
+        },
+        "in": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/scalar"
+          }
+        },
+        "notEmpty": {
+          "const": true
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "text",
+            "integer",
+            "decimal",
+            "boolean",
+            "select",
+            "multiselect",
+            "date",
+            "phone"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/i18n"
+        },
+        "help": {
+          "$ref": "#/$defs/i18n"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "pii": {
+          "type": "boolean",
+          "description": "Marks direct identifiers; drives masking in lists and exports."
+        },
+        "widget": {
+          "enum": [
+            "default",
+            "stepper",
+            "cards",
+            "muac",
+            "toggle",
+            "textarea"
+          ]
+        },
+        "unit": {
+          "description": "Either a language-neutral symbol (\"mm\", \"°C\") or an i18n map for unit words (\"months\").",
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 16
+            },
+            {
+              "$ref": "#/$defs/i18n"
+            }
+          ]
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 60,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "rules": {
+          "$ref": "#/$defs/rules"
+        },
+        "showIf": {
+          "$ref": "#/$defs/condition"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "select",
+                  "multiselect"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "options"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "options"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "crossRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "when",
+        "require",
+        "message"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "when": {
+          "$ref": "#/$defs/condition"
+        },
+        "require": {
+          "$ref": "#/$defs/id"
+        },
+        "message": {
+          "$ref": "#/$defs/i18n"
+        }
+      }
+    }
+  }
+}
