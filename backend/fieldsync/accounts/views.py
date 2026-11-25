@@ -44,7 +44,10 @@ def _assert_same_origin(request: Request) -> None:
     if request.META.get(CSRF_HEADER) != CSRF_HEADER_VALUE:
         raise ApiError(ErrorCode.PERMISSION_DENIED, "Missing X-Requested-With header.")
     origin = request.META.get("HTTP_ORIGIN")
-    if origin and urlparse(origin).netloc != request.get_host():
+    # Behind the Vercel rewrite the request reaches Django addressed to the API host, while the
+    # browser's Origin is the site the PWA was loaded from; that site is trusted explicitly.
+    allowed_hosts = {request.get_host(), *settings.FIELDSYNC_TRUSTED_ORIGIN_HOSTS}
+    if origin and urlparse(origin).netloc not in allowed_hosts:
         raise ApiError(ErrorCode.PERMISSION_DENIED, "Cross-origin request refused.")
 
 
