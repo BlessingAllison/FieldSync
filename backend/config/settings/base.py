@@ -141,6 +141,9 @@ JWT_REFRESH_ABSOLUTE = timedelta(days=env_int("JWT_REFRESH_ABSOLUTE_DAYS", defau
 JWT_REFRESH_COOKIE = "fs_rt"
 JWT_REFRESH_COOKIE_PATH = "/api/v1/auth/"
 JWT_REFRESH_COOKIE_SECURE = env_bool("JWT_REFRESH_COOKIE_SECURE", default=True)
+# Extra hosts whose Origin is accepted on cookie-authenticated auth endpoints, e.g. the
+# Vercel site that proxies /api to this service. Empty = same-origin only.
+FIELDSYNC_TRUSTED_ORIGIN_HOSTS = env_list("FIELDSYNC_TRUSTED_ORIGIN_HOSTS", default=[])
 
 SIMPLE_JWT = {
     "ALGORITHM": "HS256",
